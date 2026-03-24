@@ -1,0 +1,33 @@
+---
+description: infra k8s 설정 변경 시 overlay로 덮어쓰기 적용 (base 수정만 하지 않기)
+alwaysApply: false
+---
+# Infra K8s: Overlay 우선 설정 변경
+
+`infra/k8s` 내 리소스(Deployment, HPA, ConfigMap, replicas, 이미지 등) **설정을 변경하라는 요청**이 들어오면 반드시 **overlay로 덮어쓰도록** 적용한다.
+
+## 행동 원칙
+
+1. **Overlay로 덮어쓰기**
+   - 설정 변경은 **base만 수정하지 않는다**. 환경별 차이가 있으므로 **해당 환경 overlay**에 patch(또는 patch 파일)를 추가·수정해 base 값을 **덮어쓴다**.
+   - 예: 리소스(request/limit), HPA(min/max, metrics), replicas, 이미지 태그, ConfigMap(환경변수) 등.
+
+2. **대상 overlay**
+   - 사용자가 "prod", "production", "운영"을 언급하면 → `infra/k8s/overlays/prod/kustomization.yaml` (및 필요 시 prod 전용 patch 파일).
+   - "dev", "개발"을 언급하면 → `infra/k8s/overlays/dev/`.
+   - 환경 미지정 시: **prod와 dev 모두** 적용이 필요할 수 있으면 각 overlay에 맞게 수정하거나, "어느 환경에 적용할지" 한 번 확인한다.
+
+3. **Patch 방식**
+   - `overlays/<env>/kustomization.yaml`의 `patches`에 JSON6902 (`target` + `patch`) 또는 `patches`에 `path: ...-patch.yaml`로 overlay 전용 값을 정의.
+   - 새로 덮어쓸 값만 patch에 넣고, base는 공통·기본값으로 유지.
+
+4. **Base 수정은 언제**
+   - **모든 환경에 동일하게** 적용할 공통 기본값 변경(예: 프로브 경로, 새 환경변수 키 추가)일 때만 base를 수정한다.  
+   - **환경별로 다른 값**(리소스 크기, HPA max, NODE_ENV 등)은 반드시 overlay에서 덮어쓴다.
+
+5. **문서 반영**
+   - 설정 변경 시 `infra/docs-infra` 등 관련 문서(예: Task1 공통 문서, K6 테스트 정리)에 "어느 overlay에서 어떤 값으로 덮어쓰는지" 갱신하면 좋다.
+
+## 요약
+
+- **"설정 변경해줘" → overlay에 patch 추가/수정으로 덮어쓰기. base만 바꾸지 않기.**

@@ -1,0 +1,38 @@
+# tailscale-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tailscale-role
+  namespace: deep-quest
+rules:
+  # 1. Secret 생성 권한 (이름 지정 불가)
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+  # 2. 특정 Secret 관리 권한
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames:
+      - "tailscale-state"
+      - "web-server-tailscale-state"
+      - "tailscale-funnel-standalone-state"  # dev funnel pod용
+      - "tailscale-funnel-prod-state"        # prod funnel pod용
+    verbs: ["get", "update", "patch"]
+  # 3. 이벤트 기록 (디버깅용)
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch", "get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tailscale-rolebinding
+  namespace: deep-quest
+subjects:
+  - kind: ServiceAccount
+    name: deep-quest-sa  # Deployment의 serviceAccountName과 반드시 일치해야 함
+    namespace: deep-quest
+roleRef:
+  kind: Role
+  name: tailscale-role
+  apiGroup: rbac.authorization.k8s.io

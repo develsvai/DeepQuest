@@ -1,0 +1,43 @@
+---
+# AI HPA 튜닝 패치
+# CPU 사용률이 낮아서 HPA가 반응하지 않는 문제 해결
+# - CPU 기준 낮추기: 70% → 35% (현재 2.3% 사용 중)
+# - maxReplicas 증가: 5 → 10 (리소스 한계 내에서)
+# - scaleUp 속도 증가: 60초/1개 → 30초/2개
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ai-server-hpa
+  namespace: deep-quest
+spec:
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 35  # 70% → 35%로 낮춤
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  maxReplicas: 10  # 5 → 10으로 증가
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Pods
+          value: 2  # 1개 → 2개로 증가
+          periodSeconds: 30  # 60초 → 30초로 단축
+        - type: Percent
+          value: 100  # 최대 100% 증가
+          periodSeconds: 30
+      selectPolicy: Max  # 두 정책 중 빠른 것 선택
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60

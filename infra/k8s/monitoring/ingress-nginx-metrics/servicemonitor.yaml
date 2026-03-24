@@ -1,0 +1,23 @@
+---
+# Ingress Nginx Controller - Prometheus ServiceMonitor
+# release 라벨은 kustomization.yaml commonLabels 에서 설정. Prometheus의 serviceMonitorSelector와 일치해야 스크랩됨.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ingress-nginx-controller-metrics
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/component: controller
+spec:
+  namespaceSelector:
+    matchNames:
+      - ingress-nginx
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ingress-nginx
+      ingress-nginx-metrics: "true"
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s

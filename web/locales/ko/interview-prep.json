@@ -1,0 +1,469 @@
+{
+  "header": {
+    "highlight": "깊이 있는 개발자",
+    "headlines": {
+      "0": {
+        "line1": "깊이 있는 개발자를 향한",
+        "line2": "오늘의 여정을 시작해보세요."
+      },
+      "1": {
+        "line1": "깊이 있는 개발자가 되는",
+        "line2": "오늘의 도전을 맞이하세요."
+      },
+      "2": {
+        "line1": "깊이 있는 개발자로,",
+        "line2": "한 걸음 더 나아가는 오늘."
+      }
+    }
+  },
+  "metadata": {
+    "title": "{title} - 면접 준비",
+    "description": "{jobTitle} 면접 준비 상세 정보",
+    "descriptionDefault": "포지션 면접 준비 상세 정보",
+    "notFound": "면접 준비를 찾을 수 없습니다"
+  },
+  "creation": {
+    "title": "새 면접 준비",
+    "subtitle": "AI가 맞춤형 면접 질문을 생성해드립니다",
+    "steps": {
+      "jobDescription": "채용공고 정보",
+      "resumeUpload": "이력서 업로드"
+    },
+    "stepIndicator": {
+      "step": "단계",
+      "of": "/"
+    },
+    "navigation": {
+      "previous": "이전",
+      "next": "다음",
+      "skip": "건너뛰기",
+      "submit": "면접 준비 시작",
+      "cancel": "취소"
+    }
+  },
+  "success": {
+    "title": "면접 준비가 생성되었습니다!",
+    "message": "AI가 맞춤형 질문을 생성하고 있습니다. 잠시 후 대시보드에서 확인하실 수 있습니다.",
+    "button": "대시보드로 이동"
+  },
+  "error": {
+    "title": "오류가 발생했습니다",
+    "message": "면접 준비 생성 중 문제가 발생했습니다. 다시 시도해주세요.",
+    "retry": "다시 시도",
+    "goBack": "이전으로"
+  },
+  "detail": {
+    "title": "면접 준비 상세",
+    "backToDashboard": "대시보드",
+    "startPractice": "연습 시작",
+    "starting": "시작 중...",
+    "settings": "설정",
+    "editProfile": "프로필 수정",
+    "editProfileDialog": {
+      "title": "프로필 수정",
+      "description": "면접 준비 프로필 정보를 수정합니다.",
+      "fields": {
+        "title": "프로젝트 이름",
+        "titlePlaceholder": "프로젝트 이름을 입력하세요",
+        "jobTitle": "지원 직무",
+        "jobTitlePlaceholder": "지원 직무를 입력하세요",
+        "yearsOfExperience": "경력 연수",
+        "yearsOfExperiencePlaceholder": "연수를 입력하세요",
+        "summary": "요약",
+        "summaryPlaceholder": "경험에 대한 핵심 사항을 입력하세요..."
+      },
+      "addPoint": "항목 추가",
+      "saved": "프로필이 저장되었습니다"
+    },
+    "experienceCard": {
+      "showMore": "더보기",
+      "showLess": "접기",
+      "technologies": "기술 스택",
+      "techStack": "기술 스택",
+      "keyActions": "핵심 행동",
+      "achievements": "핵심 성과",
+      "achievementsCount": "{count}개 성과",
+      "checkKeyAchievements": "핵심 성과 목록",
+      "progress": "연습 진행률",
+      "questions": "질문",
+      "starAnalysis": "STAR 분석",
+      "practiceWith": "이 경험으로 연습하기",
+      "present": "현재",
+      "jobLevel": "직급",
+      "teamProject": "{count}인 프로젝트",
+      "teamBadge": "팀",
+      "duration": {
+        "years": "년 경력",
+        "months": "개월 경력"
+      },
+      "types": {
+        "career": "경력",
+        "project": "프로젝트"
+      },
+      "moreAchievements": "개 더",
+      "importance": {
+        "label": "중요도",
+        "high": "높음",
+        "medium": "보통",
+        "low": "낮음",
+        "updateError": "중요도 업데이트 실패. 다시 시도해주세요.",
+        "updateSuccess": "중요도가 업데이트되었습니다.",
+        "jobFit": "직무 적합도"
+      }
+    },
+    "educationCard": {
+      "badge": "학력",
+      "degree": {
+        "bachelor": "학사",
+        "master": "석사",
+        "doctor": "박사",
+        "highSchool": "고등학교",
+        "associate": "전문학사",
+        "other": "기타"
+      }
+    },
+    "tabs": {
+      "resumeAnalysis": "이력서 분석",
+      "jobDescriptions": "채용공고(JDs)"
+    },
+    "sections": {
+      "experiences": "경험",
+      "education": "학력"
+    },
+    "addExperience": {
+      "label": "새 경험 추가",
+      "description": "새로운 경력 또는 프로젝트 경험 추가"
+    },
+    "addEducation": {
+      "label": "새 학력 추가",
+      "description": "새로운 학력 정보 추가"
+    },
+    "jdPlaceholder": {
+      "title": "채용공고 보기",
+      "description": "이 섹션은 준비 중입니다."
+    },
+    "practiceStats": {
+      "title": "연습 통계",
+      "completed": "완료 질문",
+      "experienceProgress": "경험 진행률"
+    },
+    "statusMessages": {
+      "processing": {
+        "title": "준비 중",
+        "message": "면접 질문을 생성하고 있습니다. 잠시 기다려 주세요."
+      },
+      "failed": {
+        "title": "처리 실패",
+        "message": "문제가 발생했습니다. 다시 시도해 주세요."
+      }
+    },
+    "notFound": "면접 준비를 찾을 수 없습니다",
+    "progressSteps": {
+      "title": "준비 진행 상황",
+      "mainTitle": "면접 준비 진행 중",
+      "resumeAnalysis": "이력서를 분석하고 있어요",
+      "questionGeneration": "면접 질문을 만들고 있어요",
+      "emberTypingVideo": "Ember가 열심히 면접 질문을 준비하고 있습니다",
+      "videoNotSupported": "브라우저에서 비디오를 지원하지 않습니다.",
+      "toast": {
+        "parsingComplete": "이력서 분석이 완료되었어요! 🎉",
+        "questionGenComplete": "면접 질문이 준비되었어요! 🚀"
+      }
+    },
+    "v2": {
+      "resumeHeader": {
+        "targetPosition": "지원 직무:",
+        "yearsExperience": "{years}년 경력",
+        "edit": "수정"
+      },
+      "todaysQuest": {
+        "fillAnswer": "지금 답변 채우기"
+      },
+      "experienceCard": {
+        "career": "경력",
+        "project": "프로젝트",
+        "keyAchievements": "핵심 성과",
+        "questionProgress": "질문 진행률",
+        "viewDetails": "경험 상세보기"
+      },
+      "weeklyGoal": {
+        "weekLabel": "{year}년 {month}월 {week}주차",
+        "prevWeek": "이전 주",
+        "nextWeek": "다음 주"
+      },
+      "preparationSource": {
+        "tabs": {
+          "resumeAnalysis": "이력서 분석 결과",
+          "jobPosting": "채용공고"
+        },
+        "comingSoon": {
+          "title": "곧 만나요!",
+          "description": "채용공고 기반 맞춤 질문 생성 기능이 준비 중이에요"
+        },
+        "addExperience": {
+          "label": "새 경험 추가",
+          "description": "새로운 경력 또는 프로젝트 경험을 추가해보세요"
+        }
+      },
+      "todaysQuestSection": {
+        "viewAll": "모든 질문 보러가기",
+        "allCompleted": {
+          "title": "🎉 모든 질문 완료!",
+          "message": "훌륭해요! 모든 질문에 깊이 있게 답변했습니다."
+        },
+        "noQuestions": {
+          "title": "질문이 없습니다",
+          "message": "먼저 경험을 추가하고 질문을 생성해주세요."
+        }
+      },
+      "dateFormat": {
+        "current": "현재",
+        "unspecified": "미지정"
+      }
+    }
+  },
+  "practice": {
+    "title": "연습 질문 목록",
+    "backToExperiences": "경험 목록으로",
+    "metaTitle": {
+      "career": "연습 질문 목록 - 경력",
+      "project": "연습 질문 목록 - 프로젝트"
+    },
+    "metaDescription": "선택한 경험에 대한 면접 질문을 연습하고 AI 피드백을 받아보세요.",
+    "questionList": {
+      "title": "연습 질문 목록",
+      "totalQuestions": "총 문제",
+      "completedQuestions": "완료 문제",
+      "pendingQuestions": "미완료 문제",
+      "avgDifficulty": "평균 난이도",
+      "noQuestions": "표시할 질문이 없습니다",
+      "noQuestionsSubtext": "필터 조건을 변경해보세요"
+    },
+    "progress": {
+      "title": "연습 진행 현황",
+      "questionsProgress": "질문 진행률",
+      "estimatedTime": "예상 소요 시간",
+      "overallRating": "전체 평가",
+      "inProgress": "진행 중",
+      "notStarted": "시작 전"
+    },
+    "question": {
+      "startPractice": "연습 시작",
+      "practice": "연습하기",
+      "questionNumber": "{number}번",
+      "subQuestionNumber": "{number}번 세부",
+      "status": {
+        "completed": "완료",
+        "pending": "미완료"
+      },
+      "rating": {
+        "deep": "심화",
+        "intermediate": "중급",
+        "surface": "기초"
+      }
+    },
+    "experience": {
+      "types": {
+        "career": "경력",
+        "project": "프로젝트"
+      },
+      "technologies": "기술 스택",
+      "achievements": "핵심 성과",
+      "moreAchievements": "{count}개 더",
+      "duration": {
+        "years": "년",
+        "months": "개월",
+        "yearsOnly": "{years}년",
+        "monthsOnly": "{months}개월",
+        "yearsMonths": "{years}년 {months}개월"
+      }
+    },
+    "problemSolving": {
+      "title": "문제 풀이",
+      "subtitle": "질문에 답변하고 AI 피드백을 받아보세요",
+      "backToQuestions": "질문 목록으로",
+      "backToExperience": "경험으로 돌아가기",
+      "questionNumber": "질문 {number}",
+      "aiQuestionLabel": "AI 면접 질문",
+      "answerInput": {
+        "title": "답변 입력",
+        "placeholder": "면접관에게 답변하듯이 자세히 작성해주세요...",
+        "maxLength": "최대 1000자",
+        "currentLength": "{current}/{max}자",
+        "submitAnswer": "답변 제출",
+        "submitting": "제출 중...",
+        "streaming": "처리 중...",
+        "submitSuccess": "답변이 성공적으로 제출되었습니다!",
+        "submitError": "답변 제출에 실패했습니다. 다시 시도해주세요.",
+        "voiceInput": "음성 입력",
+        "stopRecording": "녹음 중지",
+        "voiceInputTooltip": "음성으로 답변을 입력할 수 있습니다 (향후 제공)",
+        "voiceInputNotSupported": "이 기능은 현재 브라우저에서 지원되지 않습니다. 최신 Chrome을 사용해주세요.",
+        "voiceInputSuccess": "음성이 성공적으로 변환되었습니다.",
+        "microphonePermissionDenied": "마이크 권한이 필요합니다. 브라우저 설정에서 권한을 허용해주세요.",
+        "noSpeechDetected": "음성이 인식되지 않았습니다. 다시 시도해주세요.",
+        "voiceInputError": "음성 인식 중 오류가 발생했습니다. 다시 시도해주세요.",
+        "voiceInputComplete": "음성 입력이 완료되었습니다.",
+        "aiExampleAnswer": "AI 답변 예시",
+        "aiExampleTooltip": "AI가 생성한 모범 답안을 참고해보세요",
+        "validation": {
+          "required": "답변을 입력해주세요",
+          "minLength": "답변은 최소 10자 이상 입력해주세요",
+          "maxLength": "답변은 1000자를 초과할 수 없습니다"
+        }
+      },
+      "feedback": {
+        "title": "AI 피드백",
+        "rating": "평가",
+        "score": "점수",
+        "viewFeedback": "피드백 확인하기",
+        "navigation": {
+          "evaluation": "답변 분석",
+          "example": "예시 답변"
+        },
+        "sections": {
+          "strengths": {
+            "title": "잘한 점",
+            "icon": "✓"
+          },
+          "weaknesses": {
+            "title": "부족한 점",
+            "icon": "!"
+          },
+          "suggestions": {
+            "title": "개선점",
+            "icon": "💡"
+          }
+        },
+        "starAnalysis": {
+          "title": "STAR 방법론 분석",
+          "situation": "상황(Situation)",
+          "task": "과제(Task)",
+          "action": "행동(Action)",
+          "result": "결과(Result)",
+          "completeness": "완성도"
+        },
+        "ratings": {
+          "DEEP": "심층",
+          "INTERMEDIATE": "보통",
+          "SURFACE": "표면적"
+        },
+        "exampleAnswer": {
+          "title": "구조화된 답변 예시",
+          "description": "실제 프로젝트 경험을 STAR 방법론에 따라 작성된 예시입니다. 각 부분에 마우스를 올려보면 해당 섹션이 무엇인지 확인할 수 있습니다."
+        },
+        "streaming": {
+          "generating": "AI 피드백 생성 중",
+          "generatingFeedback": "피드백 생성 중...",
+          "generatingGuideAnswer": "예시 답변 생성 중...",
+          "streamingInProgress": "답변을 분석하고 맞춤형 피드백을 생성하고 있습니다...",
+          "error": "피드백 스트리밍에 실패했습니다. 다시 시도해주세요."
+        }
+      },
+      "actions": {
+        "primary": {
+          "submitAnswer": "답변 제출"
+        },
+        "secondary": {
+          "retryAnswer": "다시 답변하기",
+          "viewExample": "AI 답변 예시",
+          "nextQuestion": "다음 문제로",
+          "finishPractice": "연습 종료",
+          "backToQuestions": "문제 목록으로"
+        }
+      },
+      "states": {
+        "loading": "로딩 중...",
+        "submitting": "제출 중...",
+        "error": "오류가 발생했습니다",
+        "retry": "다시 시도",
+        "completed": "완료됨"
+      },
+      "navigation": {
+        "questionProgress": "질문 {current} / {total}",
+        "timeSpent": "소요 시간: {time}",
+        "currentSession": "현재 세션"
+      },
+      "errors": {
+        "questionNotFound": "질문을 찾을 수 없습니다",
+        "sessionExpired": "세션이 만료되었습니다",
+        "submitFailed": "답변 제출에 실패했습니다",
+        "networkError": "네트워크 연결을 확인해주세요",
+        "tryAgain": "다시 시도해주세요"
+      }
+    }
+  },
+  "new": {
+    "form": {
+      "nameLabel": "면접 준비 프로젝트 이름",
+      "namePlaceholder": "면접 준비 프로젝트 이름을 입력해주세요",
+      "nameHint": "지원 직무, 연차, 도메인 등의 정보를 활용하세요",
+      "roleLabel": "지원 직무",
+      "rolePlaceholder": "직무를 선택하거나 입력하세요",
+      "roleSearchPlaceholder": "직무 검색 또는 입력...",
+      "noRolesFound": "추천 직무가 없습니다.",
+      "useCustomJobTitle": "\"{value}\" 사용하기",
+      "resumeLabel": "이력서 및 포트폴리오",
+      "resumeHint": "정확한 분석을 위해 <bold>이력서</bold>와 <bold>포트폴리오</bold>를 <bold>하나의 파일</bold>로 통합하여 업로드해 주세요.",
+      "previewLabel": "미리보기",
+      "experienceLabel": "경험 목록",
+      "cancelButton": "취소",
+      "createButton": "프로젝트 만들기",
+      "uploadingButton": "업로드 중...",
+      "creatingButton": "생성 중...",
+      "creatingInBackground": "프로젝트를 생성하고 있습니다. 잠시 후 대시보드에서 확인하세요.",
+      "createSuccess": "프로젝트가 생성되었습니다!",
+      "retryButton": "다시 시도",
+      "fileTooLargeTitle": "파일이 너무 큽니다",
+      "fileTooLargeDescription": "20MB를 초과하는 PDF는 압축 후 업로드해주세요.",
+      "compressWithILovePDF": "iLovePDF에서 압축하기"
+    },
+    "errors": {
+      "titleRequired": "프로젝트 이름을 입력해주세요",
+      "jobTitleRequired": "직무를 선택해주세요",
+      "resumeRequired": "이력서를 업로드해주세요",
+      "experienceRequired": "최소 1개 이상의 경험을 입력해주세요",
+      "pdfOnly": "PDF 파일만 업로드 가능합니다",
+      "fileTooLarge": "파일 크기는 {maxSize}MB 이하여야 합니다",
+      "createFailed": "면접 준비 생성에 실패했습니다. 다시 시도해주세요."
+    },
+    "validation": {
+      "titleRequired": "프로젝트 이름을 입력해주세요",
+      "titleTooLong": "프로젝트 이름은 50자 이하여야 합니다",
+      "jobTitleRequired": "직무를 선택해주세요",
+      "jobTitleTooLong": "직무는 50자 이하여야 합니다",
+      "positionTooLong": "직무는 50자 이하여야 합니다",
+      "experienceRequired": "최소 1개 이상의 경험을 입력해주세요",
+      "required": "이 항목은 필수입니다",
+      "tooShort": "입력값이 너무 짧습니다",
+      "tooLong": "입력값이 너무 깁니다"
+    },
+    "experience": {
+      "nameTitle": "경험 이름",
+      "namePlaceholder": "이력서에 기재된 것과 동일한 회사명, 프로젝트 이름을 입력해주세요",
+      "removeLabel": "경험 삭제",
+      "addButton": "경험 추가",
+      "instructions": {
+        "line1": "이력서에 기재된 경험(회사명, 사이드 프로젝트 등)의 이름을 <b>정확하게</b> 입력해주세요",
+        "line2": "<b>입력한 경험만</b> 기술면접 준비에 사용됩니다"
+      }
+    },
+    "pdfViewer": {
+      "defaultTitle": "미리보기",
+      "iframeTitle": "이력서 미리보기",
+      "placeholder": {
+        "title": "이력서를 업로드하세요",
+        "description": "왼쪽 패널에서 PDF 파일을 업로드하면 이곳에서 미리보기를 확인할 수 있습니다."
+      }
+    },
+    "jobRoles": {
+      "backend": "백엔드 개발자(Backend Developer)",
+      "frontend": "프론트엔드 개발자(Frontend Developer)",
+      "fullstack": "풀스택 개발자(Full Stack Developer)",
+      "devops": "데브옵스 엔지니어(DevOps Engineer)",
+      "dataEngineer": "데이터 엔지니어(Data Engineer)",
+      "dataScientist": "데이터 과학자(Data Scientist)",
+      "aiAgentEngineer": "AI 에이전트 엔지니어(AI Agent Engineer)"
+    }
+  }
+}

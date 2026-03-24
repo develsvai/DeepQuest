@@ -1,0 +1,153 @@
+{
+  "metadata": {
+    "title": "DeepQuest | AI Technical Interview Coaching - Resume-Based Mock Interview",
+    "description": "DeepQuest is an AI-powered technical interview coaching platform. Generate expected technical interview questions from your resume. AI mock interviews for developers to master your next tech interview.",
+    "keywords": "DeepQuest, deep quest, technical interview, tech interview, AI technical interview, technical interview expected questions, tech interview questions, interview expected questions, developer interview questions, resume-based interview, personalized interview, mock interview, AI mock interview, AI mock interview for developers, developer job change, developer technical interview, DeepQuest technical interview, DeepQuest mock interview"
+  },
+  "header": {
+    "nav": {
+      "problem": "The Problem",
+      "solution": "Solution",
+      "start": "Get Started"
+    },
+    "auth": {
+      "login": "Login",
+      "openApp": "Open App",
+      "getStarted": "Start Free"
+    },
+    "language": {
+      "toggle": "Language",
+      "korean": "한국어",
+      "english": "English"
+    },
+    "menu": {
+      "open": "Open menu",
+      "close": "Close menu"
+    }
+  },
+  "hero": {
+    "seoHeadline": "DeepQuest - Tech Interview Questions Generator | AI Resume-Based Coaching",
+    "headline": "Why did you choose that technology?",
+    "subheadline1": "Passing resumes but struggling in interviews?",
+    "subheadline2": {
+      "emphasis": "It's not lack of effort.",
+      "conclusion": "You just haven't found the right method."
+    },
+    "imageAlt": "Deep Quest experience analysis result screen",
+    "flow": {
+      "step1": "Upload Resume",
+      "step2": "Experience Analysis",
+      "step3": "Custom Questions",
+      "step4": "Feedback"
+    },
+    "cta": "Start Preparing with My Experience"
+  },
+  "problem": {
+    "part1": {
+      "label": "Part 01",
+      "header": "Have you ever dreaded these moments in tech interviews?",
+      "interviewer": "Interviewer",
+      "scenarios": [
+        {
+          "question": "What was the most challenging part of the project?",
+          "emotion": "That moment when your mind goes blank"
+        },
+        {
+          "question": "How exactly did you improve the performance?",
+          "emotion": "You vaguely remember but words don't come out"
+        },
+        {
+          "question": "How would you handle 10x the traffic?",
+          "emotion": "Never thought about it..."
+        }
+      ]
+    },
+    "part2": {
+      "label": "Part 02",
+      "header": "So how have you been preparing?",
+      "methods": [
+        {
+          "method": "Self-practice",
+          "thought": "\"So what exactly was I lacking...?\""
+        },
+        {
+          "method": "ChatGPT Questions",
+          "thought": "\"Do they really ask these in interviews...?\""
+        },
+        {
+          "method": "Study Groups",
+          "thought": "\"Schedules don't match, feedback is vague...\""
+        },
+        {
+          "method": "Mentoring",
+          "thought": "\"It's good but... hard to keep up financially...\""
+        }
+      ]
+    },
+    "transition": {
+      "line1": "It's not lack of effort.",
+      "line2Prefix": "You just haven't found the right",
+      "line2Emphasis": "method",
+      "line2Suffix": "yet."
+    }
+  },
+  "solution": {
+    "label": "How it works",
+    "header": "Now, discover that method",
+    "headerPrefix": "Now, discover that",
+    "headerEmphasis": "method",
+    "headerSuffix": "",
+    "stepPrefix": "Step",
+    "steps": [
+      {
+        "title": "Upload your resume",
+        "description": "AI systematically organizes your experience by company and project. Tech stack, role, and duration are automatically structured."
+      },
+      {
+        "title": "Uncover key achievements",
+        "description": "Extract STAR-based key achievements from each experience. Organized into Situation → Action → Result → Lesson structure for immediate interview use."
+      },
+      {
+        "title": "4 perspectives interviewers really care about",
+        "description": "Generate questions that could actually come from your experience, based on the core perspectives interviewers validate in tech interviews."
+      },
+      {
+        "title": "Answer and get feedback",
+        "description": "Answer questions and AI analyzes your strengths and areas for improvement. Compare with model answers and fill in the gaps."
+      }
+    ]
+  },
+  "cta": {
+    "headline": "Now, discover that method",
+    "headlinePrefix": "Now, discover that",
+    "headlineEmphasis": "method",
+    "headlineSuffix": "",
+    "subheadline": "Stop getting stuck in tech interviews.",
+    "button": "Start Preparing with My Experience",
+    "reassurance": "Get your first analysis results in just 2 minutes",
+    "discord": {
+      "divider": "or",
+      "headline": "Join Our Community",
+      "description": "Get interview tips, real-time Q&A, and early access to updates",
+      "button": "Join Discord",
+      "memberCount": "members and growing"
+    }
+  },
+  "footer": {
+    "tagline": "AI-powered technical interview preparation service",
+    "copyright": "© 2025 Deep Quest. All rights reserved.",
+    "quickLinks": {
+      "title": "Quick Links",
+      "items": ["About Service", "Pricing", "Blog"]
+    },
+    "legal": {
+      "title": "Legal",
+      "items": ["Terms of Service", "Privacy Policy"]
+    },
+    "contact": {
+      "title": "Contact",
+      "email": "Contact: official@deepquest.app",
+      "github": "Bug Reports: GitHub Issues"
+    }
+  }
+}

@@ -1,0 +1,112 @@
+1단계 재실험(KEDA + Postgres max_connections=200) 로그 정리
+수집 시각: 2026-03-24 08:40 KST 근처
+
+[1] 캡처 기반 해석
+- Locust 결과:
+  - Aggregated req/s 약 217.56
+  - 총 요청 39129
+  - 실패 2건(0.01%)
+  - 실패는 POST AI /threads 쪽 502 2건
+- Ingress:
+  - RPS(process total)는 약 220~230 req/s 구간까지 올라갔다.
+  - P95/P99는 이전 캡처보다 낮게 유지되었고, 후반에는 급격히 무너지지 않았다.
+- Worker & Queue:
+  - Worker Busy는 약 160까지 올라갔다.
+    - pod당 max worker 40 기준으로 ai-server 4개가 실제로 Running 상태로 일한 것으로 해석된다.
+  - Queue Backlog는 0 -> 약 18K까지 증가했다.
+  - Jobs Completed/sec는 약 1.8~2.0 ops/s까지 실제로 상승했다.
+  - Jobs Failed/sec는 0 근처였다.
+  - Success Rate는 후반 100%로 올라갔다.
+- HPA Replicas:
+  - ai-server desired는 0 -> 10까지 상승했다.
+  - available은 4 수준까지 올라갔다.
+
+[2] 재실험 핵심 해석
+- 이전 1단계와 비교해 가장 중요한 차이는 Jobs Completed/sec가 실제로 0이 아니라 2 ops/s 근처까지 올라왔다는 점이다.
+- 즉 Postgres max_connections=200 적용 이후에는 KEDA scale 반응이 여전히 있었고, 실제 완료 처리율도 이전보다 의미 있게 관측되었다.
+- 다만 queue backlog는 계속 증가했고, desired 10 대비 available 4에 머물렀기 때문에, 실제 병목은 여전히 클러스터 CPU 수용량 쪽에 더 가깝다.
+
+[3] live ScaledObject 상태
+kind: ScaledObject
+metadata:
+  name: ai-server-keda
+  namespace: deep-quest
+spec:
+  pollingInterval: 15
+  cooldownPeriod: 300
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  scaleTargetRef:
+    name: ai-server
+  triggers:
+  - type: prometheus
+    metadata:
+      metricName: ai_job_queue_pending
+      query: sum(ai_job_queue_pending)
+      threshold: "40"
+status:
+  conditions:
+  - type: Ready
+    status: "True"
+    reason: ScaledObjectReady
+  - type: Active
+    status: "True"
+    reason: ScalerActive
+  - type: Paused
+    status: "False"
+    reason: ScaledObjectUnpaused
+  hpaName: ai-server-keda-hpa
+  lastActiveTime: "2026-03-23T23:37:34Z"
+
+[4] live HPA 상태
+NAME                 REFERENCE               TARGETS           MINPODS   MAXPODS   REPLICAS   AGE
+ai-server-keda-hpa   Deployment/ai-server    1785300m/40 (avg) 1         10        10         8m10s
+web-server-hpa       Deployment/web-server   cpu:0%/70%, memory:31%/80% 4 10 10 36d
+
+[5] live Deployment / Pod 상태
+deployment.apps/ai-server   4/10 available
+pod/ai-server-7c764d5867-7mzln   Running   node=k8s-worker-01
+pod/ai-server-7c764d5867-blz7k   Running   node=k8s-worker-02
+pod/ai-server-7c764d5867-fkhvj   Running   node=k8s-worker-05
+pod/ai-server-7c764d5867-pgmp8   Running   node=k8s-worker-04
+pod/ai-server-7c764d5867-9qskn   Pending
+pod/ai-server-7c764d5867-gxt4x   Pending
+pod/ai-server-7c764d5867-jbgwv   Pending
+pod/ai-server-7c764d5867-ktxgw   Pending
+pod/ai-server-7c764d5867-mv69x   Pending
+pod/ai-server-7c764d5867-xhtz9   Pending
+
+[6] deep-quest 최근 events 핵심 줄
+6m8s   Normal   SuccessfulRescale  horizontalpodautoscaler/ai-server-keda-hpa  New size: 10; reason: external metric s0-prometheus(...) above target
+6m8s   Normal   ScalingReplicaSet  deployment/ai-server                         Scaled up replica set ai-server-7c764d5867 to 10 from 6
+74s    Warning  FailedScheduling   pod/ai-server-7c764d5867-mv69x               0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu.
+74s    Warning  FailedScheduling   pod/ai-server-7c764d5867-9qskn               0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu.
+44s    Warning  FailedScheduling   pod/ai-server-7c764d5867-xhtz9               0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu.
+44s    Warning  FailedScheduling   pod/ai-server-7c764d5867-ktxgw               0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu.
+44s    Warning  FailedScheduling   pod/ai-server-7c764d5867-jbgwv               0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu.
+44s    Warning  FailedScheduling   pod/ai-server-7c764d5867-gxt4x               0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu.
+
+[7] KEDA operator 핵심 로그
+2026-03-23T23:29:34Z INFO Creating a new HPA {"namespace":"deep-quest","name":"ai-server-keda","HPA.Name":"ai-server-keda-hpa"}
+2026-03-23T23:29:34Z INFO Initializing Scaling logic according to ScaledObject Specification {"namespace":"deep-quest","name":"ai-server-keda"}
+
+[8] ai-server 핵심 로그
+2026-03-23T23:35:31.406304Z Worker stats active=40 available=0 max=40
+
+2026-03-23T23:34:53.025430Z Background run succeeded run_completed_in_ms=269741 run_exec_ms=135767 run_wait_time_ms=133997
+2026-03-23T23:35:21.913931Z Background run succeeded run_completed_in_ms=298622 run_exec_ms=164511 run_wait_time_ms=134133
+2026-03-23T23:37:05.535203Z Background run succeeded run_completed_in_ms=400376 run_exec_ms=159956 run_wait_time_ms=240443
+
+[9] Postgres / exporter 관찰
+- live Postgres 설정:
+  max_connections = 200
+- 현재 세션 수:
+  idle 42 / active 2
+- exporter 최근 로그에는 이전처럼 "too many clients already"는 보이지 않았다.
+- 최근 exporter 오류는 Postgres 재기동 시점의 일시적인 "Connection refused"였다.
+
+[10] 재실험 결론
+- KEDA는 재실험에서도 정상적으로 backlog를 감지하고 desired replica 10까지 올렸다.
+- ai-server는 실제로 4개까지 Running 상태로 확장되었고, 총 Worker Busy 약 160이 관측되었다.
+- 이전 1단계 대비 Jobs Completed/sec가 실제로 증가해, Postgres max_connections=200 상향 이후 완료 처리율은 개선된 것으로 해석할 수 있다.
+- 다만 backlog는 계속 증가했고 남은 replica는 Pending으로 머물렀으므로, 다음 병목은 DB보다는 클러스터 CPU capacity에 더 가깝다.

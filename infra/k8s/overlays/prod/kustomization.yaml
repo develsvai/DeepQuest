@@ -1,0 +1,132 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: deep-quest
+
+resources:
+  - ../../base
+  - tailscale-funnel-deployment.yaml  # Prod: Tailscale Funnel standalone (Clerk webhook)
+  - ai-server-keda-scaledobject.yaml
+  - ai-server-pdb.yaml
+
+namePrefix: ""
+nameSuffix: ""
+
+labels:
+  - pairs:
+      environment: prod
+    includeSelectors: false
+
+# 이미지 태그 오버라이드 (Jenkins에서 자동 업데이트)
+images:
+  - name: harbor.192.168.0.110.nip.io/deep-quest/postgres
+    newTag: latest # db-tag
+  - name: harbor.192.168.0.110.nip.io/deep-quest/ai
+    newTag: prod # ai-tag (Jenkins가 BUILD_TAG로 자동 업데이트)
+  - name: harbor.192.168.0.110.nip.io/deep-quest/web
+    newTag: prod # web-tag (Jenkins가 BUILD_TAG로 자동 업데이트)
+  - name: harbor.192.168.0.110.nip.io/deep-quest/langgraph-run-metrics-exporter
+    newTag: prod # metrics-exporter-tag (Jenkins가 BUILD_TAG로 자동 업데이트)
+
+# Replica 수 (prod 환경). Web 4로 시작해 부하 테스트 시 스케일 타이밍 격차 완화
+replicas:
+  - name: ai-server
+    count: 1
+  - name: web-server
+    count: 4
+
+patches:
+  # Session affinity 기본 적용 (AI Service: ClientIP, Web Ingress: cookie)
+  - path: patch-ai-service-session-affinity.yaml
+    target:
+      kind: Service
+      name: ai-service
+  - path: patch-web-ingress-session-affinity.yaml
+    target:
+      kind: Ingress
+      name: web-ingress
+
+  # Prod 환경에서 리소스 확장. Task 2-1: AI limits 제거(Noisy Neighbor 재현). 2-2에서 복구 시 아래 remove 대신 replace 2줄 사용.
+  - target:
+      kind: Deployment
+      name: ai-server
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: "200m"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: "2Gi"
+      - op: remove
+        path: /spec/template/spec/containers/0/resources/limits
+      # N_JOBS_PER_WORKER 증가: 10 → 40. 2단계: REDIS_URI, DATABASE_URI (LangGraph 프로덕션)
+      - op: replace
+        path: /spec/template/spec/containers/0/env
+        value:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: POSTGRES_USER
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: POSTGRES_PASSWORD
+          - name: N_JOBS_PER_WORKER
+            value: "40"
+          - name: REDIS_URI
+            value: "redis://redis-service:6379"
+          - name: DATABASE_URI
+            valueFrom:
+              secretKeyRef:
+                name: ai-secret
+                key: LANGGRAPH_DATABASE_URI
+                optional: true
+
+  # Web: Task1 §4.4.1 확장성 대안 (파드당 리소스 축소 → HPA로 더 많은 파드 스케일아웃)
+  - target:
+      kind: Deployment
+      name: web-server
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: "250m"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: "256Mi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: "1"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: "512Mi"
+
+  # Prod 환경 ConfigMap (base 기본값 dev → production으로 덮어쓰기)
+  - path: configmap-web-config-patch.yaml
+    target:
+      kind: ConfigMap
+      name: web-config
+  - path: configmap-ai-config-patch.yaml
+    target:
+      kind: ConfigMap
+      name: ai-config
+  - path: delete-ai-hpa.yaml
+
+  # Web: min 4로 시작 + scaleUp 4 pods/45s (부하 램프와 파드 기동 타이밍 격차 완화)
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: web-server-hpa
+    patch: |
+      - op: replace
+        path: /spec/minReplicas
+        value: 4
+      - op: replace
+        path: /spec/maxReplicas
+        value: 10
+      - op: replace
+        path: /spec/behavior/scaleUp/policies/0/value
+        value: 4
+      - op: replace
+        path: /spec/behavior/scaleUp/policies/0/periodSeconds
+        value: 45

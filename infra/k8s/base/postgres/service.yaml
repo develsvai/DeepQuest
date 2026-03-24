@@ -1,0 +1,41 @@
+---
+# Headless Service for StatefulSet (내부 DNS)
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-headless
+  namespace: deep-quest
+  labels:
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/component: postgres
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/component: postgres
+---
+# ClusterIP Service (일반 접근용)
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: deep-quest
+  labels:
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/component: postgres
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/component: postgres

@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: deep-quest-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/develsvai/deep-quest-infra.git
+    targetRevision: deploy  # Jenkins가 이미지 태그 푸시하는 브랜치
+    path: k8s/overlays/prod
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: deep-quest
+  
+  syncPolicy:
+    # Prod는 수동 sync (자동 배포 위험)
+    # automated: 를 주석 해제하면 자동 배포
+    # automated:
+    #   prune: true
+    #   selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas

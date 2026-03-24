@@ -1,0 +1,176 @@
+#!/bin/bash
+
+# Git post-checkout hook for copying environment files to new worktrees
+# This hook automatically copies .env and .env.local files from /web and /ai directories
+# when creating a new worktree
+
+# Hook parameters from git
+PREV_HEAD="$1"
+NEW_HEAD="$2"
+BRANCH_CHECKOUT="$3"
+
+# Log function for consistent output
+log() {
+    echo "[post-checkout] $1"
+}
+
+# Error function for error output
+error() {
+    echo "[post-checkout] ERROR: $1" >&2
+}
+
+# Check if this is a worktree checkout (branch checkout = 1)
+if [ "$BRANCH_CHECKOUT" != "1" ]; then
+    # This is a file checkout, not a branch/worktree checkout
+    exit 0
+fi
+
+# Get the current working directory (this will be the new worktree directory)
+NEW_WORKTREE_DIR="$(pwd)"
+
+# Get the main worktree directory (where .git directory is located)
+MAIN_WORKTREE_DIR="$(git rev-parse --git-common-dir | sed 's|/.git$||')"
+
+log "Worktree checkout detected"
+log "Main worktree: $MAIN_WORKTREE_DIR"
+log "New worktree: $NEW_WORKTREE_DIR"
+
+# Skip if we're in the main worktree
+if [ "$NEW_WORKTREE_DIR" = "$MAIN_WORKTREE_DIR" ]; then
+    log "Skipping - already in main worktree"
+    exit 0
+fi
+
+# Array of directories to check and copy env files from
+ENV_DIRS=("web" "ai")
+
+# Function to copy env files for a specific directory
+copy_env_files() {
+    local dir="$1"
+    local source_dir="$MAIN_WORKTREE_DIR/$dir"
+    local target_dir="$NEW_WORKTREE_DIR/$dir"
+
+    # Check if source directory exists
+    if [ ! -d "$source_dir" ]; then
+        error "Source directory '$source_dir' does not exist in main worktree"
+        return 1
+    fi
+
+    # Check if target directory exists
+    if [ ! -d "$target_dir" ]; then
+        error "Target directory '$target_dir' does not exist in new worktree"
+        return 1
+    fi
+
+    # Copy .env files if they exist
+    local copied_files=0
+
+    for env_file in ".env" ".env.local"; do
+        local source_file="$source_dir/$env_file"
+        local target_file="$target_dir/$env_file"
+
+        if [ -f "$source_file" ]; then
+            if cp "$source_file" "$target_file"; then
+                log "Copied $dir/$env_file to new worktree"
+                copied_files=$((copied_files + 1))
+            else
+                error "Failed to copy $dir/$env_file"
+                return 1
+            fi
+        fi
+    done
+
+    if [ $copied_files -eq 0 ]; then
+        log "No .env files found in $dir directory"
+    fi
+
+    return 0
+}
+
+# Function to copy entire directory
+copy_directory() {
+    local dir_path="$1"
+    local source_dir="$MAIN_WORKTREE_DIR/$dir_path"
+    local target_dir="$NEW_WORKTREE_DIR/$dir_path"
+
+    # Skip if source directory doesn't exist
+    if [ ! -d "$source_dir" ]; then
+        log "Source directory '$dir_path' does not exist, skipping"
+        return 0
+    fi
+
+    # Copy directory recursively
+    if cp -r "$source_dir" "$target_dir"; then
+        log "Copied directory '$dir_path' to new worktree"
+        return 0
+    else
+        error "Failed to copy directory '$dir_path'"
+        return 1
+    fi
+}
+
+# Function to copy a specific file
+copy_file() {
+    local file_path="$1"
+    local source_file="$MAIN_WORKTREE_DIR/$file_path"
+    local target_file="$NEW_WORKTREE_DIR/$file_path"
+    local target_dir="$(dirname "$target_file")"
+
+    # Skip if source file doesn't exist
+    if [ ! -f "$source_file" ]; then
+        log "Source file '$file_path' does not exist, skipping"
+        return 0
+    fi
+
+    # Create target directory if it doesn't exist
+    if [ ! -d "$target_dir" ]; then
+        if ! mkdir -p "$target_dir"; then
+            error "Failed to create directory for '$file_path'"
+            return 1
+        fi
+    fi
+
+    # Copy file
+    if cp "$source_file" "$target_file"; then
+        log "Copied file '$file_path' to new worktree"
+        return 0
+    else
+        error "Failed to copy file '$file_path'"
+        return 1
+    fi
+}
+
+# Main execution
+log "Starting environment file copy process..."
+
+# Track overall success
+overall_success=true
+
+# Process each directory for .env files
+for dir in "${ENV_DIRS[@]}"; do
+    if ! copy_env_files "$dir"; then
+        overall_success=false
+    fi
+done
+
+# Copy .vscode directory
+if ! copy_directory ".vscode"; then
+    overall_success=false
+fi
+
+# Copy Claude settings files
+if ! copy_file "web/.claude/settings.local.json"; then
+    overall_success=false
+fi
+
+if ! copy_file "ai/.claude/settings.local.json"; then
+    overall_success=false
+fi
+
+if [ "$overall_success" = true ]; then
+    log "Environment file copy completed successfully"
+    exit 0
+else
+    error "Environment file copy completed with errors"
+    exit 1
+fi

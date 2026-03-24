@@ -1,0 +1,227 @@
+// Deep Quest CI Pipeline (ArgoCD GitOps)
+// 앱 레포(deep-quest) 클론(서브모듈 포함) → 빌드 → Harbor 푸시 → 인프라 레포(deep-quest-infra)에 이미지 태그 푸시
+// ArgoCD: 인프라 레포 deploy 브랜치 감시 → K8s 자동 배포
+
+pipeline {
+    agent {
+        label 'docker-build'
+    }
+
+    environment {
+        // Harbor Registry
+        HARBOR_REGISTRY = "harbor.192.168.0.110.nip.io"
+        HARBOR_PROJECT  = "deep-quest"
+        HARBOR_CRED     = "harbor-credentials"
+        
+        // Git - 앱 레포(소스), 인프라 레포(이미지 태그 푸시 대상)
+        GIT_REPO_APP   = "https://github.com/develsvai/deep-quest.git"
+        GIT_REPO_INFRA = "https://github.com/develsvai/deep-quest-infra.git"
+        GIT_CRED       = "github-credentials"
+    }
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        timeout(time: 30, unit: 'MINUTES')
+        disableConcurrentBuilds()
+    }
+
+    parameters {
+        choice(
+            name: 'BRANCH',
+            choices: ['main', 'develop'],
+            description: '앱 레포 빌드 브랜치 (prod 배포 시 main 권장)'
+        )
+        choice(
+            name: 'INFRA_BRANCH',
+            choices: ['main', 'develop'],
+            description: '인프라 레포 베이스 브랜치 (deploy 브랜치가 이 브랜치 기반으로 갱신됨)'
+        )
+        choice(
+            name: 'DEPLOY_ENV',
+            choices: ['prod', 'dev'],
+            description: '배포 환경 선택 (클러스터는 prod만 사용)'
+        )
+        booleanParam(
+            name: 'BUILD_AI',
+            defaultValue: true,
+            description: 'AI Server 이미지 빌드'
+        )
+        booleanParam(
+            name: 'BUILD_WEB',
+            defaultValue: true,
+            description: 'Web Server 이미지 빌드'
+        )
+        booleanParam(
+            name: 'BUILD_LANGGRAPH_METRICS',
+            defaultValue: true,
+            description: 'LangGraph run metrics exporter 이미지 빌드'
+        )
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                // GitSCM + SubmoduleOption으로 앱 레포 클론 (서브모듈 infra/ 포함)
+                checkout([$class: 'GitSCM',
+                    branches: [[name: "${params.BRANCH}"]],
+                    userRemoteConfigs: [[url: "${GIT_REPO_APP}", credentialsId: "${GIT_CRED}"]],
+                    extensions: [
+                        [$class: 'SubmoduleOption',
+                            disableSubmodules: false,
+                            recursiveSubmodules: true,
+                            trackingSubmodules: false,
+                            parentCredentials: true
+                        ]
+                    ]
+                ])
+                script {
+                    def commitShort = sh(
+                        script: 'git rev-parse --short HEAD',
+                        returnStdout: true
+                    ).trim()
+                    
+                    env.BUILD_TAG = "${BUILD_NUMBER}-${commitShort}"
+                    env.GIT_COMMIT_MSG = sh(
+                        script: 'git log -1 --pretty=%B',
+                        returnStdout: true
+                    ).trim()
+                    
+                    echo "App Branch: ${params.BRANCH}"
+                    echo "Infra Branch: ${params.INFRA_BRANCH}"
+                    echo "Build Tag: ${env.BUILD_TAG}"
+                    echo "Deploy Env: ${params.DEPLOY_ENV}"
+                    echo "Commit: ${env.GIT_COMMIT_MSG}"
+                }
+            }
+        }
+
+        stage('Setup Build Environment') {
+            when {
+                expression { params.BUILD_WEB }
+            }
+            steps {
+                // Web 빌드용 환경변수 파일 생성 (NEXT_PUBLIC_* 변수는 빌드 시점에 번들됨)
+                withCredentials([file(credentialsId: 'web-build-env', variable: 'WEB_BUILD_ENV')]) {
+                    sh 'cp $WEB_BUILD_ENV web/.env'
+                    sh 'echo ">> Web build env file created"'
+                }
+            }
+        }
+
+        stage('Build & Push Images') {
+            steps {
+                // 워크스페이스 루트 = 앱 레포 (web/, ai/, infra/)
+                script {
+                    if (params.BUILD_AI) {
+                        echo ">> Building AI Server (langgraph build)..."
+                        sh "cd ai && uv run langgraph build -t ${HARBOR_REGISTRY}/${HARBOR_PROJECT}/ai:${env.BUILD_TAG}"
+                    }
+                    docker.withRegistry("https://${HARBOR_REGISTRY}", HARBOR_CRED) {
+                        if (params.BUILD_AI) {
+                            docker.image("${HARBOR_REGISTRY}/${HARBOR_PROJECT}/ai:${env.BUILD_TAG}").push()
+                            docker.image("${HARBOR_REGISTRY}/${HARBOR_PROJECT}/ai:${env.BUILD_TAG}").push("${params.DEPLOY_ENV}")
+                        }
+                        if (params.BUILD_WEB) {
+                            echo ">> Building Web Server..."
+                            def img = docker.build(
+                                "${HARBOR_REGISTRY}/${HARBOR_PROJECT}/web:${env.BUILD_TAG}",
+                                "-f infra/docker/web/Dockerfile ."
+                            )
+                            img.push()
+                            img.push("${params.DEPLOY_ENV}")
+                        }
+                        if (params.BUILD_LANGGRAPH_METRICS) {
+                            echo ">> Building LangGraph Run Metrics Exporter..."
+                            def metricsImg = docker.build(
+                                "${HARBOR_REGISTRY}/${HARBOR_PROJECT}/langgraph-run-metrics-exporter:${env.BUILD_TAG}",
+                                "-f infra/docker/langgraph-run-metrics-exporter/Dockerfile ."
+                            )
+                            metricsImg.push()
+                            metricsImg.push("${params.DEPLOY_ENV}")
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Update Image Tags (GitOps)') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(
+                        credentialsId: GIT_CRED,
+                        usernameVariable: 'GIT_USER',
+                        passwordVariable: 'GIT_TOKEN'
+                    )]) {
+                        sh """
+                            # 인프라 레포(infra/)로 이동 후 deploy 브랜치 준비
+                            cd infra
+                            git config user.email "jenkins@deep-quest.local"
+                            git config user.name "Jenkins CI"
+                            
+                            # 선택한 인프라 브랜치 기반으로 deploy 브랜치 갱신
+                            git fetch https://\${GIT_USER}:\${GIT_TOKEN}@github.com/develsvai/deep-quest-infra.git ${params.INFRA_BRANCH}:${params.INFRA_BRANCH}
+                            git checkout -B deploy ${params.INFRA_BRANCH}
+                            
+                            # kustomization.yaml 이미지 태그 업데이트
+                            KUSTOMIZE_FILE="k8s/overlays/${params.DEPLOY_ENV}/kustomization.yaml"
+                            if [ "${params.BUILD_AI}" = "true" ]; then
+                              sed -i.bak "s|newTag:.*# ai-tag|newTag: ${env.BUILD_TAG} # ai-tag|g" \$KUSTOMIZE_FILE
+                            fi
+                            if [ "${params.BUILD_WEB}" = "true" ]; then
+                              sed -i.bak "s|newTag:.*# web-tag|newTag: ${env.BUILD_TAG} # web-tag|g" \$KUSTOMIZE_FILE
+                            fi
+                            if [ "${params.BUILD_LANGGRAPH_METRICS}" = "true" ]; then
+                              sed -i.bak "s|newTag:.*# metrics-exporter-tag|newTag: ${env.BUILD_TAG} # metrics-exporter-tag|g" \$KUSTOMIZE_FILE
+                            fi
+                            rm -f \${KUSTOMIZE_FILE}.bak
+                            
+                            echo ">> Updated kustomization.yaml:"
+                            cat \$KUSTOMIZE_FILE
+                            
+                            git add k8s/
+                            git commit -m "chore: update image tags to ${env.BUILD_TAG} [${params.DEPLOY_ENV}]" || true
+                            git push --force https://\${GIT_USER}:\${GIT_TOKEN}@github.com/develsvai/deep-quest-infra.git deploy
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Trigger ArgoCD Sync (Optional)') {
+            when {
+                expression { params.DEPLOY_ENV == 'prod' }
+            }
+            steps {
+                script {
+                    echo ">> Prod: ArgoCD app 'deep-quest-prod' 수동 sync 필요 (자동 sync 비활성화)"
+                    echo ">> 실행: argocd app sync deep-quest-prod"
+                    echo ">> 또는 ArgoCD UI에서 Sync 클릭"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                // 에이전트 spawn 실패 시 파이프라인 실패로 이어지지 않도록 catchError. BUILD_TAG 없으면 스킵.
+                catchError(buildResult: null, stageResult: null) {
+                    if (env.BUILD_TAG?.trim()) {
+                        sh "docker rmi ${HARBOR_REGISTRY}/${HARBOR_PROJECT}/ai:${env.BUILD_TAG} 2>/dev/null || true; docker rmi ${HARBOR_REGISTRY}/${HARBOR_PROJECT}/web:${env.BUILD_TAG} 2>/dev/null || true; docker rmi ${HARBOR_REGISTRY}/${HARBOR_PROJECT}/langgraph-run-metrics-exporter:${env.BUILD_TAG} 2>/dev/null || true"
+                    }
+                }
+            }
+            deleteDir()
+        }
+        
+        success {
+            echo "✅ CI completed successfully!"
+            echo "📦 Images pushed to: ${HARBOR_REGISTRY}/${HARBOR_PROJECT}"
+            echo "🔄 ArgoCD will deploy to: ${params.DEPLOY_ENV}"
+        }
+        
+        failure {
+            echo "❌ Pipeline failed!"
+        }
+    }
+}

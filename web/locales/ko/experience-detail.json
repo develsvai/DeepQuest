@@ -1,0 +1,75 @@
+{
+  "loading": "저장 중...",
+  "header": {
+    "noPosition": "직무 정보 없음",
+    "teamOf": "{size}인 팀",
+    "present": "현재",
+    "career": "경력",
+    "project": "프로젝트",
+    "edit": "수정"
+  },
+  "keyAchievements": {
+    "title": "핵심 성과 (STAR)",
+    "addNew": "새 핵심성과 추가",
+    "questions": "질문",
+    "generate": "질문 생성",
+    "generating": "질문 생성 중...",
+    "viewQuestions": "질문 보기"
+  },
+  "star": {
+    "situationTask": "상황 & 과제",
+    "action": "행동",
+    "result": "결과",
+    "lesson": "교훈"
+  },
+  "starGuide": {
+    "title": "STAR-L 기법이란?",
+    "description": "면접관에게 경험을 논리적이고 구체적으로 전달하기 위한 답변 프레임워크입니다.",
+    "s": {
+      "label": "Situation (상황)",
+      "desc": "경험의 배경과 어떤 상황이었는지 설명합니다."
+    },
+    "t": {
+      "label": "Task (과제)",
+      "desc": "그 상황에서 해결해야 했던 문제나 과제가 무엇이었는지 설명합니다."
+    },
+    "a": {
+      "label": "Action (행동)",
+      "desc": "문제를 해결하기 위해 구체적으로 어떤 행동을 취했는지 설명합니다."
+    },
+    "r": {
+      "label": "Result (결과)",
+      "desc": "행동의 결과로 어떤 성과를 얻었는지 구체적인 수치로 설명합니다."
+    },
+    "l": {
+      "label": "Lesson (교훈)",
+      "desc": "이 경험을 통해 무엇을 배우고 성장했는지 설명합니다."
+    }
+  },
+  "dialog": {
+    "addTitle": "핵심 성과 추가",
+    "editTitle": "핵심 성과 수정",
+    "description": "STAR-L 방법론을 사용하여 성과를 설명해주세요.",
+    "titleLabel": "제목",
+    "titlePlaceholder": "예: 성능 최적화",
+    "addPoint": "항목 추가",
+    "cancel": "취소",
+    "save": "저장",
+    "placeholders": {
+      "situationTask": "당면한 상황과 과제를 설명해주세요.",
+      "action": "어떤 구체적인 행동을 취했나요?",
+      "result": "결과는 어땠나요? 가능하면 수치를 사용해주세요.",
+      "lesson": "이 경험에서 무엇을 배웠나요?"
+    }
+  },
+  "completeness": {
+    "warningBadge": "정보 부족",
+    "tooltip": "필수 항목(STAR)이 일부 누락되었습니다.",
+    "dialog": {
+      "title": "잠시만요! 핵심 성과 정보가 충분하지 않아요.",
+      "description": "정교한 면접 질문을 생성하기 위해서는 Situation(상황), Action(행동), Result(결과) 정보가 필수적입니다.\n\n현재 누락된 정보가 있어 질문의 품질이 떨어질 수 있습니다. 정보를 보완하시겠습니까?",
+      "edit": "정보 보완하기",
+      "proceed": "그냥 생성하기"
+    }
+  }
+}

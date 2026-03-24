@@ -1,0 +1,46 @@
+{
+  "pageHeaders": {
+    "title": "Interview Preparations List",
+    "description": "Manage your interview preparations"
+  },
+  "empty": {
+    "title": "No interview preparations yet",
+    "subtitle": "Start your first interview preparation!",
+    "description": "Upload your resume and company information, and AI will generate customized interview questions for you.",
+    "cta": "Start New Interview Preparation",
+    "helpText": "💡 Upload Resume → Enter Company Info → AI Question Generation (about 2-3 minutes)"
+  },
+  "preparations": {
+    "title": "Interview Preparations",
+    "sortBy": "Sorted by status"
+  },
+  "actions": {
+    "newPreparation": "New Interview Prep",
+    "practice": "Practice",
+    "retry": "Retry"
+  },
+  "preparationItem": {
+    "analyzedScope": "Analyzed Scope",
+    "keyAchievements": "{count, plural, one {# Key Achievement} other {# Key Achievements}}",
+    "edit": "Edit",
+    "delete": "Delete",
+    "moreTech": "+{count}",
+    "analyzing": "Analyzing your resume...",
+    "analysisComplete": "Analysis completed!",
+    "analysisCompleteDescription": "Resume analysis is complete. You can now start preparing for your interview.",
+    "analysisFailed": "Analysis failed.",
+    "analysisFailedDescription": "Please try again.",
+    "status": {
+      "pending": "Pending",
+      "validating": "Validating",
+      "analyzing": "Analyzing",
+      "ready": "Ready",
+      "failed": "Failed",
+      "archived": "Archived"
+    },
+    "progress": {
+      "analyzing": "Analyzing your resume... It takes approximately 2 minutes",
+      "ariaLabel": "Preparation progress: {value} percent"
+    }
+  }
+}

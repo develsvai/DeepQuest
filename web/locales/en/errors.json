@@ -1,0 +1,13 @@
+{
+  "unexpected": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Please try again.",
+    "retry": "Try again",
+    "backToDashboard": "Back to Dashboard"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you're looking for doesn't exist or has been moved.",
+    "backToDashboard": "Back to Dashboard"
+  }
+}

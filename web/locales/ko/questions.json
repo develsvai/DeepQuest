@@ -1,0 +1,47 @@
+{
+  "empty": {
+    "title": "질문이 없습니다",
+    "description": "이 경험에 대한 질문이 아직 생성되지 않았습니다."
+  },
+  "noResults": {
+    "title": "검색 결과 없음",
+    "description": "선택한 카테고리에 해당하는 질문이 없습니다."
+  },
+  "stats": {
+    "progress": "{completed} / {total} 완료"
+  },
+  "action": {
+    "solve": "연습 시작",
+    "review": "복습하기"
+  },
+  "generation": {
+    "inProgress": "주요 성과에 대한 질문이 생성되고 있습니다..."
+  },
+  "crud": {
+    "addQuestion": "질문 추가"
+  },
+  "dialog": {
+    "title": {
+      "create": "질문 추가",
+      "edit": "질문 수정"
+    },
+    "description": {
+      "create": "이 성과에 대한 새 질문을 작성하세요.",
+      "edit": "질문 내용을 수정하세요."
+    },
+    "field": {
+      "text": {
+        "label": "질문",
+        "placeholder": "질문을 입력하세요..."
+      },
+      "category": {
+        "label": "카테고리",
+        "placeholder": "카테고리 선택 (선택사항)"
+      }
+    },
+    "action": {
+      "cancel": "취소",
+      "save": "저장"
+    }
+  }
+}

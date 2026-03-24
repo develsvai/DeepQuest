@@ -1,0 +1,1134 @@
+apiVersion: v1
+imagePullSecrets:
+- name: harbor-pull-secret
+kind: ServiceAccount
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    environment: prod
+  name: deep-quest-sa
+  namespace: deep-quest
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    environment: prod
+  name: deep-quest-role
+  namespace: deep-quest
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - services
+  - endpoints
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    environment: prod
+  name: tailscale-role
+  namespace: deep-quest
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+- apiGroups:
+  - ""
+  resourceNames:
+  - tailscale-state
+  - web-server-tailscale-state
+  - tailscale-funnel-standalone-state
+  - tailscale-funnel-prod-state
+  resources:
+  - secrets
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    environment: prod
+  name: deep-quest-rolebinding
+  namespace: deep-quest
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: deep-quest-role
+subjects:
+- kind: ServiceAccount
+  name: deep-quest-sa
+  namespace: deep-quest
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    environment: prod
+  name: tailscale-rolebinding
+  namespace: deep-quest
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: tailscale-role
+subjects:
+- kind: ServiceAccount
+  name: deep-quest-sa
+  namespace: deep-quest
+---
+apiVersion: v1
+data:
+  LANGCHAIN_PROJECT: deep-quest
+  LANGCHAIN_TRACING_V2: "true"
+  LANGGRAPH_AUTH_TYPE: none
+  LANGGRAPH_HOST: 0.0.0.0
+  LANGGRAPH_PORT: "8123"
+  LANGSMITH_PROJECT: deep-quest
+  LANGSMITH_TRACING: "true"
+  LOG_LEVEL: info
+  NODE_ENV: production
+  POSTGRES_DB: deepquest
+  POSTGRES_HOST: postgres-service
+  POSTGRES_PORT: "5432"
+kind: ConfigMap
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/component: ai
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    environment: prod
+  name: ai-config
+  namespace: deep-quest
+---
+apiVersion: v1
+data:
+  postgresql.conf: |
+    # Connection Settings
+    listen_addresses = '*'
+    max_connections = 100
+
+    # Memory Settings
+    shared_buffers = 256MB
+    effective_cache_size = 768MB
+    work_mem = 4MB
+    maintenance_work_mem = 64MB
+
+    # WAL Settings
+    wal_level = replica
+    max_wal_size = 1GB
+    min_wal_size = 80MB
+
+    # Logging
+    log_destination = 'stderr'
+    logging_collector = off
+    log_statement = 'ddl'
+    log_duration = off
+    log_min_duration_statement = 1000
+
+    # Locale
+    timezone = 'Asia/Seoul'
+kind: ConfigMap
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/component: postgres
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    environment: prod
+  name: postgres-config
+  namespace: deep-quest
+---
+apiVersion: v1
+data:
+  01-create-extensions.sql: |
+    -- Enable useful PostgreSQL extensions
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+    CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+  02-init-schema.sql: |
+    -- Initial schema setup
+    -- Prisma will handle the actual schema migrations
+    -- This is just for any pre-setup if needed
+
+    -- Grant permissions
+    GRANT ALL PRIVILEGES ON DATABASE deepquest TO deepquest;
+
+    -- Create schema if not exists
+    CREATE SCHEMA IF NOT EXISTS public;
+    GRANT ALL ON SCHEMA public TO deepquest;
+kind: ConfigMap
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/component: postgres
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+    environment: prod
+  name: postgres-init-scripts
+  namespace: deep-quest
+---
+apiVersion: v1
+data:
+  APP_URL: http://web-service
+  HOSTNAME: 0.0.0.0
+  LANGGRAPH_API_URL: http://ai-service:8123
+  NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: /ko/dashboard
+  NEXT_PUBLIC_CLERK_SIGN_IN_URL: /sign-in
+  NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL: /ko/dashboard
+  NEXT_PUBLIC_CLERK_SIGN_UP_URL: /sign-up
+  NEXT_PUBLIC_SENTRY_ENV: production
+  NODE_ENV: production
+  PORT: "3000"
+  SENTRY_ALLOW_EMPTY_DSN: "false"
+kind: ConfigMap
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/component: web
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    environment: prod
+  name: web-config
+  namespace: deep-quest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/component: ai
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+    environment: prod
+  name: ai-service
+  namespace: deep-quest
+spec:
+  ports:
+  - name: http
+    port: 8123
+    protocol: TCP
+    targetPort: 8123
+  selector:
+    app.kubernetes.io/component: ai
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/component: postgres
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+    environment: prod
+  name: postgres-headless
+  namespace: deep-quest
+spec:
+  clusterIP: None
+  ports:
+  - name: postgres
+    port: 5432
+    protocol: TCP
+    targetPort: 5432
+  selector:
+    app.kubernetes.io/component: postgres
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/component: postgres
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+    environment: prod
+  name: postgres-service
+  namespace: deep-quest
+spec:
+  ports:
+  - name: postgres
+    port: 5432
+    protocol: TCP
+    targetPort: 5432
+  selector:
+    app.kubernetes.io/component: postgres
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/component: web
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+    environment: prod
+  name: web-service
+  namespace: deep-quest
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app.kubernetes.io/component: web
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/component: postgres-backup
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+    environment: prod
+  name: postgres-backup
+  namespace: deep-quest
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: nfs-storage
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/component: ai
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+    environment: prod
+  name: ai-server
+  namespace: deep-quest
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: ai
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/name: deep-quest
+      app.kubernetes.io/part-of: deep-quest
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        app.kubernetes.io/version: 1.0.0
+        checksum/config: '{{ include (print $.Template.BasePath "/configmap.yaml")
+          . | sha256sum }}'
+      labels:
+        app.kubernetes.io/component: ai
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: deep-quest
+        app.kubernetes.io/part-of: deep-quest
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/component: ai
+                  app.kubernetes.io/managed-by: kustomize
+                  app.kubernetes.io/name: deep-quest
+                  app.kubernetes.io/part-of: deep-quest
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              key: POSTGRES_USER
+              name: postgres-secret
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: POSTGRES_PASSWORD
+              name: postgres-secret
+        envFrom:
+        - configMapRef:
+            name: ai-config
+        - secretRef:
+            name: ai-secret
+        image: harbor.192.168.0.110.nip.io/deep-quest/ai:prod
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /ok
+            port: 8123
+          initialDelaySeconds: 40
+          periodSeconds: 30
+          timeoutSeconds: 10
+        name: ai
+        ports:
+        - containerPort: 8123
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /ok
+            port: 8123
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: "2"
+            memory: 4Gi
+          requests:
+            cpu: "1"
+            memory: 2Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1000
+        volumeMounts:
+        - mountPath: /app/data
+          name: ai-data
+        - mountPath: /app/logs
+          name: ai-logs
+        - mountPath: /app/.langgraph_api
+          name: langgraph-cache
+      imagePullSecrets:
+      - name: harbor-pull-secret
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for PostgreSQL..."
+          until nc -z postgres-service 5432; do
+            echo "PostgreSQL is unavailable - sleeping"
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+        image: busybox:1.36
+        name: wait-for-postgres
+      serviceAccountName: deep-quest-sa
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: ai-data
+      - emptyDir: {}
+        name: ai-logs
+      - emptyDir: {}
+        name: langgraph-cache
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: tailscale-funnel
+    app.kubernetes.io/name: deep-quest
+    environment: prod
+  name: tailscale-funnel
+  namespace: deep-quest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: tailscale-funnel
+      app.kubernetes.io/name: deep-quest
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: tailscale-funnel
+        app.kubernetes.io/name: deep-quest
+    spec:
+      containers:
+      - command:
+        - sh
+        - -c
+        - |
+          apk add --no-cache socat
+          echo "Forwarding localhost:3000 -> web-service:80"
+          socat TCP-LISTEN:3000,fork,reuseaddr TCP:web-service:80 &
+          sleep 2
+          echo ready > /tmp/ready/forwarder
+          wait
+        image: alpine:3.19
+        name: forwarder
+        ports:
+        - containerPort: 3000
+          name: funnel
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 32Mi
+        volumeMounts:
+        - mountPath: /tmp/ready
+          name: forwarder-ready
+      - command:
+        - /bin/sh
+        - -c
+        - |
+          # 1. forwarder가 리스닝할 때까지 대기
+          echo "Waiting for forwarder..."
+          until [ -f /tmp/ready/forwarder ]; do sleep 1; done
+          sleep 2
+          echo "Forwarder ready."
+
+          # 2. tailscaled 백그라운드 실행
+          tailscaled \
+            --state=kube:${TS_KUBE_SECRET} \
+            --socket=/tmp/tailscaled.sock \
+            --tun=userspace-networking &
+
+          # 3. 소켓 생성 대기
+          echo "Waiting for tailscaled socket..."
+          until [ -S /tmp/tailscaled.sock ]; do sleep 1; done
+          echo "Tailscaled socket found."
+
+          # 4. Tailscale 로그인 (Up)
+          tailscale --socket=/tmp/tailscaled.sock up \
+            --authkey="${TS_AUTHKEY}" \
+            --hostname="${TS_HOSTNAME}" \
+            --accept-dns=true
+
+          # 5. Funnel: localhost:3000을 HTTPS로 공개
+          tailscale --socket=/tmp/tailscaled.sock funnel 3000
+
+          wait
+        env:
+        - name: TS_KUBE_SECRET
+          value: tailscale-funnel-prod-state
+        - name: TS_USERSPACE
+          value: "true"
+        - name: TS_HOSTNAME
+          value: deepquest
+        - name: TS_AUTHKEY
+          valueFrom:
+            secretKeyRef:
+              key: TS_AUTHKEY
+              name: tailscale-auth
+        image: ghcr.io/tailscale/tailscale:latest
+        name: tailscale
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+        volumeMounts:
+        - mountPath: /tmp/ready
+          name: forwarder-ready
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for web-service..."
+          until nc -z web-service 80; do sleep 2; done
+          echo "web-service is ready."
+        image: busybox:1.36
+        name: wait-for-web
+      serviceAccountName: deep-quest-sa
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: forwarder-ready
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/component: web
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+    environment: prod
+  name: web-server
+  namespace: deep-quest
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: web
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/name: deep-quest
+      app.kubernetes.io/part-of: deep-quest
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        app.kubernetes.io/version: 1.0.0
+      labels:
+        app.kubernetes.io/component: web
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: deep-quest
+        app.kubernetes.io/part-of: deep-quest
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/component: web
+                  app.kubernetes.io/managed-by: kustomize
+                  app.kubernetes.io/name: deep-quest
+                  app.kubernetes.io/part-of: deep-quest
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              key: DATABASE_URL
+              name: postgres-secret
+        - name: DIRECT_URL
+          valueFrom:
+            secretKeyRef:
+              key: DIRECT_URL
+              name: postgres-secret
+        - name: NEXT_PUBLIC_APP_URL
+          value: https://deepquest.192.168.0.110.nip.io
+        envFrom:
+        - configMapRef:
+            name: web-config
+        - secretRef:
+            name: web-secret
+        image: harbor.192.168.0.110.nip.io/deep-quest/web:prod
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 40
+          periodSeconds: 30
+          timeoutSeconds: 10
+        name: web
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: "2"
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1001
+      imagePullSecrets:
+      - name: harbor-pull-secret
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for PostgreSQL..."
+          until nc -z postgres-service 5432; do
+            echo "PostgreSQL is unavailable - sleeping"
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+        image: busybox:1.36
+        name: wait-for-postgres
+      - command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for AI Server..."
+          until nc -z ai-service 8123; do
+            echo "AI Server is unavailable - sleeping"
+            sleep 2
+          done
+          echo "AI Server is ready!"
+        image: busybox:1.36
+        name: wait-for-ai
+      serviceAccountName: deep-quest-sa
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/component: postgres
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+    environment: prod
+  name: postgres
+  namespace: deep-quest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: postgres
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/name: deep-quest
+      app.kubernetes.io/part-of: deep-quest
+  serviceName: postgres-headless
+  template:
+    metadata:
+      annotations:
+        app.kubernetes.io/version: 1.0.0
+      labels:
+        app.kubernetes.io/component: postgres
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: deep-quest
+        app.kubernetes.io/part-of: deep-quest
+    spec:
+      containers:
+      - envFrom:
+        - secretRef:
+            name: postgres-secret
+        image: harbor.192.168.0.110.nip.io/deep-quest/postgres:latest
+        imagePullPolicy: Always
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - $(POSTGRES_USER)
+            - -d
+            - $(POSTGRES_DB)
+          failureThreshold: 6
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        name: postgres
+        ports:
+        - containerPort: 5432
+          name: postgres
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - $(POSTGRES_USER)
+            - -d
+            - $(POSTGRES_DB)
+          failureThreshold: 6
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: "2"
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgres-data
+        - mountPath: /docker-entrypoint-initdb.d
+          name: postgres-init
+        - mountPath: /backups
+          name: backup-storage
+      imagePullSecrets:
+      - name: harbor-pull-secret
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - |
+          chown -R 999:999 /var/lib/postgresql/data
+          chmod 700 /var/lib/postgresql/data
+        image: busybox:1.36
+        name: init-permissions
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgres-data
+      securityContext:
+        fsGroup: 999
+      serviceAccountName: deep-quest-sa
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - configMap:
+          defaultMode: 493
+          name: postgres-init-scripts
+        name: postgres-init
+      - name: backup-storage
+        persistentVolumeClaim:
+          claimName: postgres-backup
+  volumeClaimTemplates:
+  - metadata:
+      labels:
+        app.kubernetes.io/component: postgres
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: deep-quest
+        app.kubernetes.io/part-of: deep-quest
+      name: postgres-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
+      storageClassName: nfs-storage
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/component: postgres-backup
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+    environment: prod
+  name: postgres-backup
+  namespace: deep-quest
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    metadata:
+      annotations:
+        app.kubernetes.io/version: 1.0.0
+      labels:
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: deep-quest
+        app.kubernetes.io/part-of: deep-quest
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          annotations:
+            app.kubernetes.io/version: 1.0.0
+          labels:
+            app.kubernetes.io/component: postgres-backup
+            app.kubernetes.io/managed-by: kustomize
+            app.kubernetes.io/name: deep-quest
+            app.kubernetes.io/part-of: deep-quest
+        spec:
+          containers:
+          - command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              BACKUP_DIR=/backups
+              TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+              BACKUP_FILE="${BACKUP_DIR}/deepquest_${TIMESTAMP}.sql.gz"
+
+              echo "=== Postgres Backup Started ==="
+              echo "Timestamp: ${TIMESTAMP}"
+              echo "Database: ${PGDATABASE}"
+              echo "Target: ${BACKUP_FILE}"
+
+              # pg_dump 실행 및 압축
+              pg_dump --verbose --clean --if-exists --no-owner --no-acl | gzip > "${BACKUP_FILE}"
+
+              # 백업 파일 크기 확인
+              FILESIZE=$(ls -lh "${BACKUP_FILE}" | awk '{print $5}')
+              echo "Backup completed: ${BACKUP_FILE} (${FILESIZE})"
+
+              # 7일 이상 된 백업 삭제
+              echo "=== Cleaning old backups (older than 7 days) ==="
+              find ${BACKUP_DIR} -name "deepquest_*.sql.gz" -mtime +7 -delete -print || true
+
+              # 현재 백업 목록 출력
+              echo "=== Current backups ==="
+              ls -lht ${BACKUP_DIR}/deepquest_*.sql.gz 2>/dev/null || echo "No backups found"
+
+              echo "=== Backup Completed Successfully ==="
+            env:
+            - name: PGHOST
+              value: postgres-service
+            - name: PGPORT
+              value: "5432"
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef:
+                  key: POSTGRES_DB
+                  name: postgres-secret
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  key: POSTGRES_USER
+                  name: postgres-secret
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: POSTGRES_PASSWORD
+                  name: postgres-secret
+            image: postgres:16-alpine
+            imagePullPolicy: IfNotPresent
+            name: backup
+            resources:
+              limits:
+                cpu: 500m
+                memory: 512Mi
+              requests:
+                cpu: 100m
+                memory: 256Mi
+            volumeMounts:
+            - mountPath: /backups
+              name: backup-storage
+          restartPolicy: OnFailure
+          volumes:
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: postgres-backup
+  schedule: 0 18 * * *
+  successfulJobsHistoryLimit: 3
+  timeZone: Asia/Seoul
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/component: ai
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+    environment: prod
+  name: ai-server-hpa
+  namespace: deep-quest
+spec:
+  behavior:
+    scaleDown:
+      policies:
+      - periodSeconds: 60
+        type: Pods
+        value: 1
+      stabilizationWindowSeconds: 300
+    scaleUp:
+      policies:
+      - periodSeconds: 60
+        type: Pods
+        value: 1
+      stabilizationWindowSeconds: 0
+  maxReplicas: 5
+  metrics:
+  - resource:
+      name: cpu
+      target:
+        averageUtilization: 70
+        type: Utilization
+    type: Resource
+  - resource:
+      name: memory
+      target:
+        averageUtilization: 80
+        type: Utilization
+    type: Resource
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ai-server
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+  labels:
+    app.kubernetes.io/component: web
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+    environment: prod
+  name: web-server-hpa
+  namespace: deep-quest
+spec:
+  behavior:
+    scaleDown:
+      policies:
+      - periodSeconds: 60
+        type: Pods
+        value: 1
+      stabilizationWindowSeconds: 300
+    scaleUp:
+      policies:
+      - periodSeconds: 60
+        type: Pods
+        value: 2
+      stabilizationWindowSeconds: 0
+  maxReplicas: 5
+  metrics:
+  - resource:
+      name: cpu
+      target:
+        averageUtilization: 70
+        type: Utilization
+    type: Resource
+  - resource:
+      name: memory
+      target:
+        averageUtilization: 80
+        type: Utilization
+    type: Resource
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: web-server
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    app.kubernetes.io/version: 1.0.0
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/upstream-hash-by: $request_uri
+  labels:
+    app.kubernetes.io/component: web
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/part-of: deep-quest
+    environment: prod
+  name: web-ingress
+  namespace: deep-quest
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: deepquest.192.168.0.110.nip.io
+    http:
+      paths:
+      - backend:
+          service:
+            name: web-service
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - deepquest.192.168.0.110.nip.io
+    secretName: deepquest-tls-secret

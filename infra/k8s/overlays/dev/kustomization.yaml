@@ -1,0 +1,94 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: deep-quest
+
+resources:
+  - ../../base
+  - tailscale-funnel-deployment.yaml  # Dev: Tailscale Funnel standalone (Clerk webhook)
+
+namePrefix: ""
+nameSuffix: ""
+
+labels:
+  - pairs:
+      environment: dev
+    includeSelectors: true
+
+# 이미지 태그 오버라이드 (Jenkins에서 자동 업데이트)
+images:
+  - name: harbor.192.168.0.110.nip.io/deep-quest/postgres
+    newTag: dev # db-tag
+  - name: harbor.192.168.0.110.nip.io/deep-quest/ai
+    newTag: 59-ffb2ec8 # ai-tag
+  - name: harbor.192.168.0.110.nip.io/deep-quest/web
+    newTag: 59-ffb2ec8 # web-tag
+  - name: harbor.192.168.0.110.nip.io/deep-quest/langgraph-run-metrics-exporter
+    newTag: dev # metrics-exporter-tag
+
+# Replica 수 조정 (dev 환경)
+# HPA가 관리하므로 minReplicas와 동일하게 설정
+replicas:
+  - name: ai-server
+    count: 1
+  - name: web-server
+    count: 1  # standalone funnel pod가 트래픽 프록시
+
+patches:
+  # Dev 환경에서 리소스 제한 줄이기
+  - target:
+      kind: Deployment
+      name: ai-server
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: "500m"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: "1Gi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: "1"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: "2Gi"
+
+  - target:
+      kind: Deployment
+      name: web-server
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: "250m"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: "256Mi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: "1"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: "512Mi"
+
+  # Dev 환경 ConfigMap 패치
+  - target:
+      kind: ConfigMap
+      name: ai-config
+    patch: |
+      - op: replace
+        path: /data/LOG_LEVEL
+        value: "debug"
+      - op: replace
+        path: /data/NODE_ENV
+        value: "development"
+
+  - target:
+      kind: ConfigMap
+      name: web-config
+    patch: |
+      - op: replace
+        path: /data/NODE_ENV
+        value: "development"
+      - op: replace
+        path: /data/NEXT_PUBLIC_SENTRY_ENV
+        value: "development"

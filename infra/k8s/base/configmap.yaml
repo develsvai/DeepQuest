@@ -1,0 +1,98 @@
+---
+# PostgreSQL Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: deep-quest
+  labels:
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/component: postgres
+data:
+  # PostgreSQL custom configuration
+  postgresql.conf: |
+    # Connection Settings
+    listen_addresses = '*'
+    max_connections = 200
+    
+    # Memory Settings
+    shared_buffers = 256MB
+    effective_cache_size = 768MB
+    work_mem = 4MB
+    maintenance_work_mem = 64MB
+    
+    # WAL Settings
+    wal_level = replica
+    max_wal_size = 1GB
+    min_wal_size = 80MB
+    
+    # Logging
+    log_destination = 'stderr'
+    logging_collector = off
+    log_statement = 'ddl'
+    log_duration = off
+    log_min_duration_statement = 1000
+    
+    # Locale
+    timezone = 'Asia/Seoul'
+---
+# AI Server Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-config
+  namespace: deep-quest
+  labels:
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/component: ai
+data:
+  # PostgreSQL Connection (non-sensitive)
+  POSTGRES_HOST: postgres-service
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: deepquest
+  # Server Configuration
+  LANGGRAPH_HOST: "0.0.0.0"
+  LANGGRAPH_PORT: "8000"
+  # Environment
+  NODE_ENV: production
+  LOG_LEVEL: info
+  # Resume parser LLM (배포 후 ConfigMap만 수정해도 적용 가능, 파드 재시작 필요)
+  RESUME_PARSER_PARSING_MODEL: "gemini-2.5-flash-lite"
+  # Auth
+  LANGGRAPH_AUTH_TYPE: none
+  # LangSmith Tracing
+  LANGSMITH_TRACING: "false"
+  LANGSMITH_PROJECT: deep-quest
+  LANGCHAIN_PROJECT: deep-quest
+  LANGCHAIN_TRACING_V2: "false"
+  GEMINI_GLOBAL_RATE_LIMIT_ENABLED: "true"
+  GEMINI_GLOBAL_RATE_LIMIT_RPS: "60"
+  GEMINI_GLOBAL_RATE_LIMIT_BURST: "60"
+  GEMINI_GLOBAL_RATE_LIMIT_WAIT_TIMEOUT_SECONDS: "15"
+---
+# Web Server Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-config
+  namespace: deep-quest
+  labels:
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/component: web
+data:
+  # AI Server URL
+  LANGGRAPH_API_URL: http://ai-service:8000
+  # Internal App URL (AI 웹훅 콜백용 - 클러스터 내부 통신)
+  APP_URL: http://web-service
+  # Clerk URLs
+  NEXT_PUBLIC_CLERK_SIGN_IN_URL: /sign-in
+  NEXT_PUBLIC_CLERK_SIGN_UP_URL: /sign-up
+  NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: /ko/dashboard
+  NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL: /ko/dashboard
+  # App Configuration
+  NODE_ENV: development
+  PORT: "3000"
+  HOSTNAME: "0.0.0.0"
+  # Sentry
+  NEXT_PUBLIC_SENTRY_ENV: development
+  SENTRY_ALLOW_EMPTY_DSN: "true"

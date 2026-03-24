@@ -1,0 +1,90 @@
+# Deep Quest - Full Stack Docker Compose
+# Includes: AI Server, Web Server (PostgreSQL 제외 - 서버 DB 사용)
+# compose 레벨 변수: 이 디렉터리의 .env 또는 env.template 참고
+
+services:
+  # AI Server (LangGraph) - 로컬 빌드 이미지 사용 (compose-build.sh → deepquest-ai:dev/prod)
+  ai:
+    image: ${AI_IMAGE:-deepquest-ai:dev}
+    container_name: ${AI_CONTAINER_NAME:-deepquest-ai}
+    restart: unless-stopped
+
+    ports:
+      - "${AI_PORT:-8123}:8123"
+
+    env_file:
+      - ./ai/.env
+
+    volumes:
+      - ai_data:/app/data
+      - ai_logs:/app/logs
+
+    networks:
+      - deepquest-network
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8123/ok"]
+      interval: ${HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${HEALTHCHECK_TIMEOUT:-10s}
+      retries: 3
+      start_period: 40s
+
+    deploy:
+      resources:
+        limits:
+          cpus: '${AI_CPU_LIMIT:-2}'
+          memory: ${AI_MEMORY_LIMIT:-4G}
+        reservations:
+          cpus: '${AI_CPU_RESERVATION:-1}'
+          memory: ${AI_MEMORY_RESERVATION:-2G}
+
+  # Web Server (Next.js) - 로컬 빌드 이미지 사용 (compose-build.sh → deepquest-web:dev/prod)
+  web:
+    image: ${WEB_IMAGE:-deepquest-web:dev}
+    container_name: ${WEB_CONTAINER_NAME:-deepquest-web}
+    restart: unless-stopped
+
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+
+    env_file:
+      - ./web/.env
+
+    # env_file의 APP_URL/AI_WEBHOOK_SECRET 사용. 호스트에서 덮어쓰려면 실행 전 export
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - APP_URL=${APP_URL:-http://web:3000}
+
+    networks:
+      - deepquest-network
+
+    depends_on:
+      ai:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 || r.statusCode === 307 ? 0 : 1)})"]
+      interval: ${HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${HEALTHCHECK_TIMEOUT:-10s}
+      retries: 3
+      start_period: 40s
+
+    deploy:
+      resources:
+        limits:
+          cpus: '${WEB_CPU_LIMIT:-2}'
+          memory: ${WEB_MEMORY_LIMIT:-2G}
+        reservations:
+          cpus: '${WEB_CPU_RESERVATION:-0.5}'
+          memory: ${WEB_MEMORY_RESERVATION:-512M}
+
+volumes:
+  ai_data:
+    driver: local
+  ai_logs:
+    driver: local
+
+networks:
+  deepquest-network:
+    driver: bridge
+

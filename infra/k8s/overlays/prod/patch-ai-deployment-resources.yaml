@@ -1,0 +1,19 @@
+---
+# AI Deployment 리소스 조정 (선택사항)
+# CPU requests를 낮춰서 더 많은 파드를 스케일아웃할 수 있게 함
+# 현재: 1 CPU → 변경: 200m (선택적 적용)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-server
+  namespace: deep-quest
+spec:
+  template:
+    spec:
+      containers:
+        - name: ai
+          resources:
+            requests:
+              cpu: "200m"  # 1 → 200m로 낮춤 (KEDA scale-out 실효성 개선)
+              memory: 2Gi
+            # limits는 prod overlay에서 제거됨 (Task 2-1)

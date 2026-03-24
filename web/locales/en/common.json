@@ -1,0 +1,412 @@
+{
+  "navigation": {
+    "dashboard": "Interview Preps",
+    "interviewPrep": "Interview Prep Details",
+    "newPrep": "New Interview Prep",
+    "practice": "Practice",
+    "profile": "Profile",
+    "settings": "Settings",
+    "help": "Help",
+    "logout": "Logout"
+  },
+  "sidebar": {
+    "main": "MAIN",
+    "home": "Home",
+    "newInterviewPrep": "New Interview Prep",
+    "recentPreparations": "RECENT PREPARATIONS",
+    "settings": "Settings",
+    "language": "Language",
+    "languageKorean": "한국어",
+    "languageEnglish": "English",
+    "logout": "Logout"
+  },
+  "common": {
+    "continue": "Continue",
+    "viewDetails": "View Details",
+    "upload": "Upload",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Successfully completed"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Hello, {name}!",
+    "welcomeSubtitle": "Let's start your interview preparation today",
+    "stats": {
+      "totalPreparations": "Total Preparations",
+      "activePreparations": "Active Preparations",
+      "completedQuestions": "Completed Questions"
+    },
+    "progress": {
+      "preparations": " interview preparations",
+      "completed": "% completed",
+      "questions": " questions",
+      "inProgress": " in progress",
+      "totalDescription": "Total interview preparations",
+      "activeDescription": "AI analysis in progress",
+      "completedDescription": " out of "
+    },
+    "preparations": {
+      "title": "Interview Preparations",
+      "sortBy": "Sorted by status"
+    },
+    "empty": {
+      "title": "No interview preparations yet",
+      "subtitle": "Start your first interview preparation!",
+      "description": "Upload your resume and company information, and AI will generate personalized interview questions for you.",
+      "cta": "Start New Interview Prep"
+    },
+    "actions": {
+      "newPreparation": "New Interview Prep",
+      "practice": "Practice",
+      "retry": "Retry"
+    }
+  },
+  "analysisProgress": {
+    "title": "AI Analysis in Progress",
+    "subtitle": "Analyzing your resume and job posting to generate personalized questions",
+    "estimatedTime": "Takes approximately 3-5 minutes",
+    "steps": {
+      "jdStructuring": {
+        "title": "Job Analysis",
+        "description": "Analyzing and structuring the job posting",
+        "processing": "Analyzing job posting content...",
+        "completed": "Job analysis completed"
+      },
+      "resumeParsing": {
+        "title": "Resume Analysis",
+        "description": "Parsing resume and applying STAR methodology",
+        "processing": "Analyzing resume content...",
+        "completed": "Resume analysis completed"
+      },
+      "questionGeneration": {
+        "title": "Question Generation",
+        "description": "Generating personalized interview questions",
+        "processing": "Creating personalized questions...",
+        "completed": "Question generation completed"
+      }
+    },
+    "status": {
+      "starting": "Analysis has started",
+      "analyzing": "Analysis is in progress",
+      "completed": "All analysis completed!",
+      "failed": "An error occurred during analysis",
+      "pending": "Pending",
+      "processing": "Processing"
+    },
+    "actions": {
+      "continueInBackground": "Continue in Background",
+      "goToDashboard": "Go to Dashboard",
+      "retry": "Retry",
+      "viewResults": "View Results",
+      "viewDetails": "View Details",
+      "cancel": "Cancel",
+      "confirmCancel": "Confirm Cancel"
+    },
+    "messages": {
+      "completedSuccess": "Personalized interview questions have been successfully generated!",
+      "autoRedirect": "Automatically redirecting to results page...",
+      "errorOccurred": "An issue occurred during analysis. Please try again.",
+      "remainingTime": "Estimated time until completion"
+    },
+    "initializing": "Initializing...",
+    "defaultJobTitle": "Interview Preparation",
+    "cancelConfirmation": "Click again to cancel the analysis",
+    "error": {
+      "generic": "An error occurred"
+    }
+  },
+  "newInterview": {
+    "pageTitle": "Create New Interview Preparation",
+    "breadcrumb": {
+      "dashboard": "Dashboard",
+      "newInterview": "New Interview Prep"
+    },
+    "step1": {
+      "title": "Job Posting Analysis",
+      "description": "Please enter the job posting information you want to apply for",
+      "urlLabel": "Job Posting URL (Optional)",
+      "urlPlaceholder": "https://...",
+      "companyLabel": "Company Name",
+      "companyPlaceholder": "e.g., Google",
+      "positionLabel": "Position",
+      "positionPlaceholder": "e.g., Software Engineer",
+      "descriptionLabel": "Job Description",
+      "descriptionPlaceholder": "Please enter the detailed content of the job posting you want to apply for",
+      "cancelButton": "Cancel",
+      "analyzeButton": "Analyze",
+      "nextButton": "Next →"
+    },
+    "jobDescription": {
+      "validation": {
+        "companyRequired": "Please enter company name",
+        "positionRequired": "Please enter position title",
+        "descriptionRequired": "Please enter at least 10 characters for job description",
+        "requiredFieldsMissing": "Please fill in all required fields",
+        "pleaseCheckRequired": "Company name, position title, and job description are required fields."
+      }
+    },
+    "step2": {
+      "title": "Resume Upload",
+      "description": "Please upload your resume for analysis",
+      "infoMessage": "AI will analyze your resume to generate personalized interview questions",
+      "previousButton": "← Previous",
+      "submitButton": "Submit & Start AI Analysis",
+      "dragDropText": "Drag & drop your file here, or",
+      "selectFileText": "click to browse",
+      "supportedFormats": "Supported formats: PDF, DOCX, TXT",
+      "maxSize": "Max size: 5MB"
+    },
+    "error": {
+      "jobPostingMissing": "Job posting information is missing. Please go back and enter the job information.",
+      "networkError": "Please check your network connection.",
+      "fileUploadError": "File upload failed. Please try again.",
+      "serverError": "Server error occurred. Please try again later.",
+      "validationError": "Please check your input information.",
+      "unknownError": "An unknown error occurred. Please try again.",
+      "retry": "Retry"
+    }
+  },
+  "landing": {
+    "hero": {
+      "headline": "Personalized Technical Interview Prep with Your Resume",
+      "subheadline": "Just upload JD URL and your resume, and AI will generate personalized technical questions like a real interviewer",
+      "ctaButton": "Start Free"
+    },
+    "problem": {
+      "title": "Ever experienced this while preparing with chat AI?",
+      "points": [
+        "Tedious process of writing long prompts every time",
+        "AI losing context as conversations get longer",
+        "Generic questions unrelated to your resume",
+        "One-way preparation with answers only, no feedback",
+        "Confusion from mixing multiple companies' interview prep"
+      ]
+    },
+    "solution": {
+      "title": "Deep Quest is different",
+      "cards": [
+        {
+          "title": "No Complex Prompting",
+          "description": "Copy JD URL + Drag resume. Done."
+        },
+        {
+          "title": "Interview-Optimized UX",
+          "description": "Systematic Q&A management, not chat windows"
+        },
+        {
+          "title": "Perfect Prep with Follow-ups",
+          "description": "Analyzes your answers to generate additional questions"
+        }
+      ]
+    },
+    "howItWorks": {
+      "title": "Perfect Interview Prep in 3 Steps",
+      "steps": [
+        {
+          "title": "Upload",
+          "description": "Upload JD URL and resume for target company",
+          "time": "30 sec"
+        },
+        {
+          "title": "Analyze",
+          "description": "AI generates personalized questions just for you",
+          "time": "2 min"
+        },
+        {
+          "title": "Practice",
+          "description": "Improve with systematic practice and AI feedback",
+          "time": "30 min daily"
+        }
+      ]
+    },
+    "features": {
+      "title": "Everything You Need for Interview Success",
+      "grid": [
+        {
+          "title": "STAR Method Validation",
+          "description": "Questions that specifically validate achievements in your resume"
+        },
+        {
+          "title": "3-Level Depth Assessment",
+          "description": "Surface → Intermediate → Deep level feedback"
+        },
+        {
+          "title": "AI Feedback",
+          "description": "Answer analysis and improvement suggestions"
+        },
+        {
+          "title": "Multi-Interview Management",
+          "description": "Prepare for multiple companies & track progress"
+        }
+      ]
+    },
+    "comparison": {
+      "title": "Why Deep Quest?",
+      "table": {
+        "headers": [
+          "Feature",
+          "Deep Quest",
+          "General AI Chat",
+          "Coding Test Platform"
+        ],
+        "rows": [
+          ["Resume-based Custom Questions", true, false, false],
+          ["Auto JD Analysis", true, false, false],
+          ["Dedicated Interview UI", true, false, "partial"],
+          ["Follow-up Generation", true, "partial", false],
+          ["Systematic Progress Management", true, false, "partial"],
+          ["Depth-level Feedback", true, false, false]
+        ]
+      }
+    },
+    "cta": {
+      "headline": "Start now, and your next interview will be different",
+      "subtext": "Start for free, no credit card required",
+      "ctaButton": "Start Free Trial",
+      "trustBadges": [
+        "GitHub & Google Login",
+        "Data deletion available anytime"
+      ]
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "items": [
+        {
+          "question": "What features are included in the free trial?",
+          "answer": "You can try all core features for free. Create 1 interview preparation and use AI question generation and feedback without limits."
+        },
+        {
+          "question": "Is my resume information safe?",
+          "answer": "All data is encrypted and stored securely. Complete deletion is available anytime. We never share with third parties."
+        },
+        {
+          "question": "What resume formats do you support?",
+          "answer": "We support PDF, DOCX, and TXT formats. Both Korean and English are supported."
+        },
+        {
+          "question": "What if I don't have a JD URL?",
+          "answer": "You can directly copy and paste the text. URL is optional."
+        },
+        {
+          "question": "How accurate is the AI feedback?",
+          "answer": "We use the latest LLM technology to provide interviewer-level feedback."
+        },
+        {
+          "question": "Can I prepare for multiple companies simultaneously?",
+          "answer": "Yes, you can create separate interview preparations for each company and manage them simultaneously."
+        }
+      ]
+    },
+    "footer": {
+      "copyright": "© 2025 Deep Quest. All rights reserved.",
+      "quickLinks": {
+        "title": "Quick Links",
+        "items": ["About Service", "Pricing", "Blog"]
+      },
+      "legal": {
+        "title": "Legal",
+        "items": ["Terms of Service", "Privacy Policy"]
+      },
+      "contact": {
+        "title": "Contact",
+        "email": "Contact: official@deepquest.app",
+        "github": "Bug Reports: GitHub Issues"
+      }
+    }
+  },
+  "pageHeaders": {
+    "dashboard": {
+      "title": "Dashboard",
+      "description": "Manage your interview preparations"
+    },
+    "newInterviewPrep": {
+      "title": "New Interview Preparation",
+      "description": "AI will generate personalized interview questions for you"
+    },
+    "interviewPrepDetail": {
+      "title": "Interview Preparation Details",
+      "description": "View your analysis results and start practice"
+    },
+    "practiceQuestionList": {
+      "title": "Practice Questions",
+      "description": "Answer questions based on your experience"
+    },
+    "problemSolving": {
+      "title": "Problem Solving Practice",
+      "description": "Practice and receive AI feedback on your answers"
+    }
+  },
+  "actions": {
+    "backToDashboard": "Back to Dashboard",
+    "backToExperiences": "Back to Experiences",
+    "backToQuestions": "Back to Questions"
+  },
+  "questionCategory": {
+    "all": "All",
+    "starRelevanceLabel": "STAR Relevance",
+    "TECHNICAL_DECISION": {
+      "name": "Technical Decision Making",
+      "tags": ["Design Strategy", "Trade-offs"],
+      "questionHook": "Why did you choose that technology?",
+      "description": "Defend your reasoning for selecting this technology over alternatives. Prove the validity of your architectural decisions.",
+      "starRelevance": "Validates if your choice (A) was appropriate for the given Situation (S) and Task (T)."
+    },
+    "TECHNICAL_DEPTH": {
+      "name": "Technical Depth & Principles",
+      "tags": ["CS Fundamentals", "Under the Hood"],
+      "questionHook": "How does this feature work internally?",
+      "description": "Explain what actually happens behind the abstracted functionality of frameworks and libraries.",
+      "starRelevance": "Validates technical depth and principles during Action (A) execution."
+    },
+    "PROBLEM_SOLVING": {
+      "name": "Problem Solving & Verification",
+      "tags": ["Root Cause Analysis", "Proof of Impact"],
+      "questionHook": "How did you solve the problem?",
+      "description": "Prove your relentless root cause analysis, resolution process, and impact with objective data.",
+      "starRelevance": "Validates logical causality between Action (A) and Result (R)."
+    },
+    "SCALABILITY": {
+      "name": "Scalability",
+      "tags": ["Bottleneck Prediction", "System Design"],
+      "questionHook": "What if the system scales up?",
+      "description": "Discuss potential bottlenecks when traffic or data increases 10x, 100x and propose improvements.",
+      "starRelevance": "Validates insight for Future expansion beyond the immediate Result (R)."
+    }
+  },
+  "questionGeneration": {
+    "dialog": {
+      "title": "Generate Interview Questions",
+      "description": "Choose the interview areas you want to prepare for. Customized questions will be generated to verify this experience based on your selection.",
+      "noSelection": "No categories selected",
+      "selectedCount": "{count, plural, one {# category selected} other {# categories selected}}",
+      "submit": "Generate Questions"
+    }
+  },
+  "unsavedChanges": {
+    "title": "Unsaved Changes",
+    "description": "You have unsaved changes. Are you sure you want to close? Your changes will be lost.",
+    "confirm": "Discard Changes",
+    "cancel": "Keep Editing"
+  },
+  "toast": {
+    "educationSaved": "Education saved successfully",
+    "experienceSaved": "Experience saved successfully",
+    "preparationDeleted": "Interview preparation deleted"
+  },
+  "deleteConfirmation": {
+    "title": "Confirm Delete",
+    "description": "Deleting this will also remove all related information. Are you sure you want to delete?",
+    "confirm": "Delete",
+    "cancel": "Cancel"
+  },
+  "terms": {
+    "privacyPolicy": "Privacy Policy",
+    "privacyPolicyDescription": "DeepQuest's Privacy Policy.",
+    "termsOfService": "Terms of Service",
+    "termsOfServiceDescription": "DeepQuest's Terms of Service."
+  }
+}

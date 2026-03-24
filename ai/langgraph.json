@@ -1,0 +1,12 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "jd_to_text": "./src/graphs/jd_to_text/graph.py:workflow",
+    "jd_structuring": "./src/graphs/jd_structuring/graph.py:graph",
+    "resume_parser": "./src/graphs/resume_parser/graph.py:graph",
+    "question_gen": "./src/graphs/question_gen/graph.py:graph",
+    "question_feedback_gen": "./src/graphs/question_feedback_gen/graph.py:graph"
+  },
+  "env": ".env",
+  "image_distro": "wolfi"  
+}

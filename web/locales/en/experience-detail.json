@@ -1,0 +1,75 @@
+{
+  "loading": "Saving...",
+  "header": {
+    "noPosition": "No position specified",
+    "teamOf": "Team of {size}",
+    "present": "Present",
+    "career": "Career",
+    "project": "Project",
+    "edit": "Edit"
+  },
+  "keyAchievements": {
+    "title": "Key Achievements (STAR)",
+    "addNew": "Add New Achievement",
+    "questions": "Questions",
+    "generate": "Generate",
+    "generating": "Generating...",
+    "viewQuestions": "View Questions"
+  },
+  "star": {
+    "situationTask": "Situation & Task",
+    "action": "Action",
+    "result": "Result",
+    "lesson": "Lesson"
+  },
+  "starGuide": {
+    "title": "What is the STAR-L Method?",
+    "description": "A structured framework for presenting your experiences logically and specifically to interviewers.",
+    "s": {
+      "label": "Situation",
+      "desc": "Describe the background and context of your experience."
+    },
+    "t": {
+      "label": "Task",
+      "desc": "Explain the problem or challenge you needed to solve in that situation."
+    },
+    "a": {
+      "label": "Action",
+      "desc": "Detail the specific actions you took to address the problem."
+    },
+    "r": {
+      "label": "Result",
+      "desc": "Share the outcomes of your actions with specific metrics."
+    },
+    "l": {
+      "label": "Lesson",
+      "desc": "Reflect on what you learned and how you grew from this experience."
+    }
+  },
+  "dialog": {
+    "addTitle": "Add Key Achievement",
+    "editTitle": "Edit Key Achievement",
+    "description": "Describe your achievement using the STAR-L method.",
+    "titleLabel": "Title",
+    "titlePlaceholder": "e.g., Performance Optimization",
+    "addPoint": "Add Point",
+    "cancel": "Cancel",
+    "save": "Save",
+    "placeholders": {
+      "situationTask": "Describe the context and the challenge you faced.",
+      "action": "What specific actions did you take?",
+      "result": "What was the outcome? Use metrics if possible.",
+      "lesson": "What did you learn from this experience?"
+    }
+  },
+  "completeness": {
+    "warningBadge": "Incomplete",
+    "tooltip": "Some required fields (STAR) are missing.",
+    "dialog": {
+      "title": "Wait! Your key achievement information is incomplete.",
+      "description": "To generate high-quality interview questions, Situation, Action, and Result information is essential.\n\nSome information is currently missing, which may affect the quality of generated questions. Would you like to complete the information?",
+      "edit": "Complete Information",
+      "proceed": "Generate Anyway"
+    }
+  }
+}

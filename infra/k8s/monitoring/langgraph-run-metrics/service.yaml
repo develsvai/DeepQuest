@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: langgraph-run-metrics-exporter
+  namespace: deep-quest
+  labels:
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/component: langgraph-run-metrics
+spec:
+  type: ClusterIP
+  ports:
+    - name: metrics
+      port: 9108
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/component: langgraph-run-metrics

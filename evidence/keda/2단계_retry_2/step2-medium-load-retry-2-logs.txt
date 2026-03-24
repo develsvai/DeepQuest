@@ -1,0 +1,98 @@
+2단계 재실험 2(KEDA + cpu request 200m + Postgres max_connections=500 + async 개선) 로그 정리
+수집 기준: 2026-03-24 10:17~10:22 KST 캡처
+
+[1] 캡처 기반 해석
+- Locust 결과:
+  - Aggregated req/s 약 131.81
+  - 총 요청 23714
+  - 실패 9건(0.04%)
+  - 실패는 POST AI /threads 502 4건, POST AI /runs (enqueue) 502 5건
+  - 평균 응답시간 약 534ms, median 460ms, max 2275ms
+- Ingress:
+  - RPS(total)는 대체로 0.1~0.3 req/s 수준으로 보였고, process total은 약 0.23~0.5 구간으로 표시되었다.
+  - P95는 약 5~6초, P99는 약 10초까지 상승했다.
+  - 즉 처리율은 개선됐지만 tail latency는 여전히 높은 편이다.
+- Worker & Queue:
+  - Worker Busy는 약 80에서 시작해 약 400까지 상승했다.
+    - pod당 max worker 40 기준으로 ai-server 10개가 실제로 Running 상태로 일한 것으로 해석된다.
+  - Queue Backlog는 약 10K에서 시작해 후반에는 약 7K 수준까지 감소했다.
+  - Jobs Completed/sec는 약 3~4 ops/s에서 시작해 후반에는 약 20 ops/s 근처까지 상승했다.
+  - Jobs Failed/sec는 0 근처였다.
+  - Success Rate는 100%를 유지했다.
+- HPA Replicas:
+  - ai-server desired는 10을 유지했다.
+  - available은 2 -> 4 -> 8 -> 10으로 실제로 따라붙었다.
+
+[2] 이번 재실험 핵심 해석
+- 이전에는 desired=10이어도 실제 available pod가 충분히 따라오지 못하는 구간이 길었다.
+- 이번에는 ai-server가 실제로 10개까지 올라왔고, Worker Busy가 약 400까지 증가했다.
+- 가장 중요한 변화는 Jobs Completed/sec가 약 20 ops/s 수준까지 상승했다는 점이다.
+- 또한 queue backlog가 증가가 아니라 감소로 전환되었다.
+- 즉 이번 결과는 KEDA scale-out이 실제 처리 인력 증가와 완료 처리율 개선으로 연결되었음을 보여준다.
+
+[3] Locust 상세 수치
+- GET AI /ok
+  - 563 reqs
+  - 0 fails
+  - avg 536ms
+  - req/s 3.13
+- POST AI /runs (enqueue)
+  - 10787 reqs
+  - 5 fails (0.05%)
+  - avg 532ms
+  - median 450ms
+  - req/s 59.96
+- POST AI /threads
+  - 10831 reqs
+  - 4 fails (0.04%)
+  - avg 543ms
+  - median 470ms
+  - req/s 60.20
+- GET Web /api/health
+  - 1533 reqs
+  - 0 fails
+  - avg 482ms
+  - req/s 8.52
+
+[4] HPA / KEDA 해석
+- ai-server-keda-hpa desired는 10으로 유지되었다.
+- ai-server available은 2에서 시작했지만 후반에는 10까지 실제로 도달했다.
+- 이는 KEDA가 단순히 desired replica만 높인 것이 아니라, 실제 가용 pod 증가로 이어졌다는 뜻이다.
+
+[5] Worker / Queue 해석
+- Worker Busy 약 400은 10 pods * 40 workers와 거의 일치한다.
+- 이전 단계 대비 총 worker 수가 크게 증가했다.
+- Queue Backlog가 줄어들기 시작한 것은 이번 단계에서 시스템이 유입보다 더 빠르게 backlog를 배출하기 시작했다는 의미다.
+- Jobs Completed/sec 약 20은 이전 단계들(~2, ~5 ops/s) 대비 큰 개선이다.
+
+[6] Resource 해석
+- Pod CPU는 대체로 낮거나 중간 수준에 머물렀다.
+- 일부 ai pod는 0.2~0.35 core 수준으로 보였다.
+- Pod Memory는 대체로 450~520MiB 부근이었다.
+- 따라서 남은 병목은 순수 CPU 포화보다는 외부 API 대기, 애플리케이션 처리 구조, 초기 scale-up 지연 쪽에 더 가깝다.
+
+[7] Latency 해석
+- tail latency(P95/P99)는 여전히 높다.
+- 즉 처리량은 개선됐지만, 사용자가 체감하는 느린 구간은 아직 남아 있다.
+- 이는 KEDA scale-out만으로 완전히 해소되지 않는 애플리케이션 레벨 지연이 있다는 뜻이다.
+
+[8] 이번 단계의 의미
+- concurrent_max=40 보호 로직
+- Redis 기반 전역 rate limiting
+- KEDA backlog scaling
+- ai-server cpu request 200m
+- Postgres max_connections 500
+- async 개선
+
+위 조합이 함께 작동하면서, 이번에는 시스템이 실제로 queue를 줄이기 시작했다.
+
+[9] 포트폴리오용 요약 문장
+- 100 virtual users 기준 약 132 req/s의 지속 부하를 생성한 상태에서, KEDA가 ai-server를 10개까지 실제로 scale-out 했고 worker 수는 약 400까지 증가했다.
+- 그 결과 Jobs Completed/sec는 약 20 ops/s까지 상승했고, queue backlog도 누적이 아니라 감소로 전환되었다.
+- 다만 P95/P99는 여전히 높아, scale-out 이후에도 애플리케이션 내부 처리 경로 최적화는 추가로 필요하다.
+
+[10] 이번 단계 결론
+- 이번 2단계 재실험 2는 지금까지의 실험 중 가장 의미 있는 개선 결과다.
+- 이전에는 scale-out과 실제 처리율 증가 사이 간격이 컸다.
+- 하지만 이번에는 scale-out이 실제 available pod 증가, worker 확장, completed/sec 상승, backlog 감소로 이어졌다.
+- 따라서 현재 구조는 “부하를 받으면 무너지는 시스템”이 아니라, “scale-out과 튜닝을 통해 backlog를 실제로 소모할 수 있는 시스템”으로 개선되었다고 해석할 수 있다.

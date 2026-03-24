@@ -1,0 +1,47 @@
+{
+  "empty": {
+    "title": "No Questions",
+    "description": "No questions have been generated for this experience yet."
+  },
+  "noResults": {
+    "title": "No Results",
+    "description": "No questions match the selected categories."
+  },
+  "stats": {
+    "progress": "{completed} / {total} completed"
+  },
+  "action": {
+    "solve": "Solve",
+    "review": "Review"
+  },
+  "generation": {
+    "inProgress": "Questions are being generated for this achievement..."
+  },
+  "crud": {
+    "addQuestion": "Add Question"
+  },
+  "dialog": {
+    "title": {
+      "create": "Add Question",
+      "edit": "Edit Question"
+    },
+    "description": {
+      "create": "Create a new question for this achievement.",
+      "edit": "Update the question details."
+    },
+    "field": {
+      "text": {
+        "label": "Question",
+        "placeholder": "Enter your question..."
+      },
+      "category": {
+        "label": "Category",
+        "placeholder": "Select a category (optional)"
+      }
+    },
+    "action": {
+      "cancel": "Cancel",
+      "save": "Save"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+---
+# Ingress Nginx Controller Metrics Service
+# Controller는 포트 10254에서 Prometheus 메트릭을 노출합니다.
+# Helm 차트의 Service에는 metrics 포트가 없어 별도 Service 생성.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-nginx-controller-metrics
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    ingress-nginx-metrics: "true"  # ServiceMonitor 전용
+spec:
+  type: ClusterIP
+  ports:
+    - name: metrics
+      port: 10254
+      targetPort: 10254
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx

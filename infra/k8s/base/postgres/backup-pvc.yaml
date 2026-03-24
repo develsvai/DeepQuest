@@ -1,0 +1,18 @@
+---
+# Postgres Backup PVC
+# NFS 스토리지 사용 - 노드 장애 시에도 백업 데이터 유지
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-backup
+  namespace: deep-quest
+  labels:
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/component: postgres-backup
+spec:
+  accessModes:
+    - ReadWriteMany  # 여러 파드에서 접근 가능 (크론잡 + 복구 작업)
+  storageClassName: nfs-storage
+  resources:
+    requests:
+      storage: 5Gi

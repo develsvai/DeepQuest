@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-scripts
+  namespace: deep-quest
+  labels:
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/component: postgres
+data:
+  01-create-extensions.sql: |
+    -- Enable useful PostgreSQL extensions
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+    CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+    
+  02-init-schema.sql: |
+    -- Initial schema setup
+    -- Prisma will handle the actual schema migrations
+    -- This is just for any pre-setup if needed
+    
+    -- Grant permissions
+    GRANT ALL PRIVILEGES ON DATABASE deepquest TO deepquest;
+    
+    -- Create schema if not exists
+    CREATE SCHEMA IF NOT EXISTS public;
+    GRANT ALL ON SCHEMA public TO deepquest;

@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: langgraph-run-metrics-exporter
+  namespace: deep-quest
+  labels:
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/component: langgraph-run-metrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: deep-quest
+      app.kubernetes.io/component: langgraph-run-metrics
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: deep-quest
+        app.kubernetes.io/component: langgraph-run-metrics
+    spec:
+      serviceAccountName: deep-quest-sa
+      containers:
+        - name: exporter
+          image: harbor.192.168.0.110.nip.io/deep-quest/langgraph-run-metrics-exporter:prod
+          imagePullPolicy: Always
+          ports:
+            - name: metrics
+              containerPort: 9108
+              protocol: TCP
+          env:
+            - name: LANGGRAPH_DATABASE_URI
+              valueFrom:
+                secretKeyRef:
+                  name: ai-secret
+                  key: LANGGRAPH_DATABASE_URI
+            - name: METRICS_PORT
+              value: "9108"
+            - name: DB_CONNECT_TIMEOUT_SECONDS
+              value: "5"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 5
+            periodSeconds: 15
+      imagePullSecrets:
+        - name: harbor-pull-secret

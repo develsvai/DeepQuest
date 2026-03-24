@@ -1,0 +1,469 @@
+{
+  "header": {
+    "highlight": "Deep Developer",
+    "headlines": {
+      "0": {
+        "line1": "Your journey to Deep Developer",
+        "line2": "begins here."
+      },
+      "1": {
+        "line1": "Embrace today's challenge",
+        "line2": "on your path to becoming a Deep Developer."
+      },
+      "2": {
+        "line1": "Take one step closer",
+        "line2": "to becoming a Deep Developer today."
+      }
+    }
+  },
+  "metadata": {
+    "title": "{title} - Interview Preparation",
+    "description": "Detailed interview preparation for {jobTitle}",
+    "descriptionDefault": "Detailed interview preparation for position",
+    "notFound": "Interview Preparation Not Found"
+  },
+  "creation": {
+    "title": "New Interview Preparation",
+    "subtitle": "AI will generate personalized interview questions for you",
+    "steps": {
+      "jobDescription": "Job Description",
+      "resumeUpload": "Resume Upload"
+    },
+    "stepIndicator": {
+      "step": "Step",
+      "of": "of"
+    },
+    "navigation": {
+      "previous": "Previous",
+      "next": "Next",
+      "skip": "Skip",
+      "submit": "Start Interview Prep",
+      "cancel": "Cancel"
+    }
+  },
+  "success": {
+    "title": "Interview Preparation Created!",
+    "message": "AI is generating personalized questions. You can check them on the dashboard shortly.",
+    "button": "Go to Dashboard"
+  },
+  "error": {
+    "title": "An Error Occurred",
+    "message": "There was a problem creating your interview preparation. Please try again.",
+    "retry": "Try Again",
+    "goBack": "Go Back"
+  },
+  "detail": {
+    "title": "Interview Preparation Details",
+    "backToDashboard": "Dashboard",
+    "startPractice": "Start Practice",
+    "starting": "Starting...",
+    "settings": "Settings",
+    "editProfile": "Edit Profile",
+    "editProfileDialog": {
+      "title": "Edit Profile",
+      "description": "Update your interview preparation profile information.",
+      "fields": {
+        "title": "Project Title",
+        "titlePlaceholder": "Enter project title",
+        "jobTitle": "Target Position",
+        "jobTitlePlaceholder": "Enter target position",
+        "yearsOfExperience": "Years of Experience",
+        "yearsOfExperiencePlaceholder": "Enter years",
+        "summary": "Summary",
+        "summaryPlaceholder": "Enter key point about your experience..."
+      },
+      "addPoint": "Add Point",
+      "saved": "Profile saved successfully"
+    },
+    "experienceCard": {
+      "showMore": "Show More",
+      "showLess": "Show Less",
+      "technologies": "Technologies",
+      "techStack": "Tech Stack",
+      "keyActions": "Key Actions",
+      "achievements": "Key Achievements",
+      "achievementsCount": "{count} Achievements",
+      "checkKeyAchievements": "Check Key Achievements",
+      "progress": "Practice Progress",
+      "questions": "Questions",
+      "starAnalysis": "STAR Analysis",
+      "practiceWith": "Practice with this experience",
+      "present": "Present",
+      "jobLevel": "Job Level",
+      "teamProject": "{count}-person project",
+      "teamBadge": "TEAM",
+      "duration": {
+        "years": "Years of Experience",
+        "months": "Months of Experience"
+      },
+      "types": {
+        "career": "Career",
+        "project": "Project"
+      },
+      "moreAchievements": " more",
+      "importance": {
+        "label": "Importance",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low",
+        "updateError": "Failed to update importance. Please try again.",
+        "updateSuccess": "Importance updated successfully.",
+        "jobFit": "Job Fit"
+      }
+    },
+    "educationCard": {
+      "badge": "Education",
+      "degree": {
+        "bachelor": "Bachelor's",
+        "master": "Master's",
+        "doctor": "Doctorate",
+        "highSchool": "High School",
+        "associate": "Associate",
+        "other": "Other"
+      }
+    },
+    "tabs": {
+      "resumeAnalysis": "Resume Analysis",
+      "jobDescriptions": "Job Descriptions (JDs)"
+    },
+    "sections": {
+      "experiences": "Experiences",
+      "education": "Education"
+    },
+    "addExperience": {
+      "label": "Add New Experience",
+      "description": "Add a new career or project experience"
+    },
+    "addEducation": {
+      "label": "Add New Education",
+      "description": "Add a new education entry"
+    },
+    "jdPlaceholder": {
+      "title": "Job Description View",
+      "description": "This section is under construction."
+    },
+    "practiceStats": {
+      "title": "Practice Statistics",
+      "completed": "Completed",
+      "experienceProgress": "Experience Progress"
+    },
+    "statusMessages": {
+      "processing": {
+        "title": "Processing",
+        "message": "Generating interview questions. Please wait."
+      },
+      "failed": {
+        "title": "Processing Failed",
+        "message": "Something went wrong. Please try again."
+      }
+    },
+    "notFound": "Interview Preparation Not Found",
+    "progressSteps": {
+      "title": "Preparation Progress",
+      "mainTitle": "Preparing Your Interview",
+      "resumeAnalysis": "Analyzing your resume",
+      "questionGeneration": "Creating interview questions",
+      "emberTypingVideo": "Ember is preparing your interview questions",
+      "videoNotSupported": "Your browser does not support video playback.",
+      "toast": {
+        "parsingComplete": "Resume analysis complete! 🎉",
+        "questionGenComplete": "Interview questions are ready! 🚀"
+      }
+    },
+    "v2": {
+      "resumeHeader": {
+        "targetPosition": "Target Position:",
+        "yearsExperience": "{years, plural, one {# year} other {# years}} experience",
+        "edit": "Edit"
+      },
+      "todaysQuest": {
+        "fillAnswer": "Fill in Answer Now"
+      },
+      "experienceCard": {
+        "career": "Career",
+        "project": "Project",
+        "keyAchievements": "Key Achievements",
+        "questionProgress": "Question Progress",
+        "viewDetails": "View Experience Details"
+      },
+      "weeklyGoal": {
+        "weekLabel": "Week {week}, {month} {year}",
+        "prevWeek": "Previous week",
+        "nextWeek": "Next week"
+      },
+      "preparationSource": {
+        "tabs": {
+          "resumeAnalysis": "Resume Analysis",
+          "jobPosting": "Job Posting"
+        },
+        "comingSoon": {
+          "title": "Coming Soon!",
+          "description": "Custom question generation based on job postings is in development"
+        },
+        "addExperience": {
+          "label": "Add Experience",
+          "description": "Add a new career or project experience"
+        }
+      },
+      "todaysQuestSection": {
+        "viewAll": "View All Questions",
+        "allCompleted": {
+          "title": "🎉 All Questions Completed!",
+          "message": "Great job! You've answered all questions thoroughly."
+        },
+        "noQuestions": {
+          "title": "No Questions",
+          "message": "Add experiences first and generate questions."
+        }
+      },
+      "dateFormat": {
+        "current": "Present",
+        "unspecified": "Unspecified"
+      }
+    }
+  },
+  "practice": {
+    "title": "Practice Questions",
+    "backToExperiences": "Back to Experiences",
+    "metaTitle": {
+      "career": "Practice Questions - Career",
+      "project": "Practice Questions - Project"
+    },
+    "metaDescription": "Practice interview questions for your selected experience and receive AI feedback.",
+    "questionList": {
+      "title": "Practice Questions",
+      "totalQuestions": "Total Questions",
+      "completedQuestions": "Completed",
+      "pendingQuestions": "Pending",
+      "avgDifficulty": "Avg Difficulty",
+      "noQuestions": "No questions to display",
+      "noQuestionsSubtext": "Try changing the filter criteria"
+    },
+    "progress": {
+      "title": "Practice Progress",
+      "questionsProgress": "Questions Progress",
+      "estimatedTime": "Estimated Time",
+      "overallRating": "Overall Rating",
+      "inProgress": "In Progress",
+      "notStarted": "Not Started"
+    },
+    "question": {
+      "startPractice": "Start Practice",
+      "practice": "Practice",
+      "questionNumber": "{number}",
+      "subQuestionNumber": "{number} Sub",
+      "status": {
+        "completed": "Completed",
+        "pending": "Pending"
+      },
+      "rating": {
+        "deep": "Deep",
+        "intermediate": "Intermediate",
+        "surface": "Surface"
+      }
+    },
+    "experience": {
+      "types": {
+        "career": "Career",
+        "project": "Project"
+      },
+      "technologies": "Technologies",
+      "achievements": "Key Achievements",
+      "moreAchievements": "{count} more",
+      "duration": {
+        "years": "year",
+        "months": "month",
+        "yearsOnly": "{years, plural, one {# year} other {# years}}",
+        "monthsOnly": "{months, plural, one {# month} other {# months}}",
+        "yearsMonths": "{years, plural, one {# year} other {# years}} {months, plural, one {# month} other {# months}}"
+      }
+    },
+    "problemSolving": {
+      "title": "Problem Solving",
+      "subtitle": "Answer the question and receive AI feedback",
+      "backToQuestions": "Back to Questions",
+      "backToExperience": "Back to Experience",
+      "questionNumber": "Question {number}",
+      "aiQuestionLabel": "AI Interview Question",
+      "answerInput": {
+        "title": "Answer Input",
+        "placeholder": "Write your answer as if speaking to an interviewer...",
+        "maxLength": "Maximum 1000 characters",
+        "currentLength": "{current}/{max} characters",
+        "submitAnswer": "Submit Answer",
+        "submitting": "Submitting...",
+        "streaming": "Processing...",
+        "submitSuccess": "Answer submitted successfully!",
+        "submitError": "Failed to submit answer. Please try again.",
+        "voiceInput": "Voice Input",
+        "stopRecording": "Stop Recording",
+        "voiceInputTooltip": "Input your answer by voice (coming soon)",
+        "voiceInputNotSupported": "Voice input is not supported in this browser. Please use the latest Chrome.",
+        "voiceInputSuccess": "Speech successfully converted to text.",
+        "microphonePermissionDenied": "Microphone permission is required. Please allow access in browser settings.",
+        "noSpeechDetected": "No speech detected. Please try again.",
+        "voiceInputError": "An error occurred during speech recognition. Please try again.",
+        "voiceInputComplete": "Voice input completed.",
+        "aiExampleAnswer": "AI Example Answer",
+        "aiExampleTooltip": "See a sample answer generated by AI",
+        "validation": {
+          "required": "Please provide an answer",
+          "minLength": "Answer must be at least 10 characters",
+          "maxLength": "Answer cannot exceed 1000 characters"
+        }
+      },
+      "feedback": {
+        "title": "AI Feedback",
+        "rating": "Rating",
+        "score": "Score",
+        "viewFeedback": "View Feedback",
+        "navigation": {
+          "evaluation": "Answer Analysis",
+          "example": "Example Answer"
+        },
+        "sections": {
+          "strengths": {
+            "title": "Strengths",
+            "icon": "✓"
+          },
+          "weaknesses": {
+            "title": "Areas for Improvement",
+            "icon": "!"
+          },
+          "suggestions": {
+            "title": "Suggestions",
+            "icon": "💡"
+          }
+        },
+        "starAnalysis": {
+          "title": "STAR Method Analysis",
+          "situation": "Situation",
+          "task": "Task",
+          "action": "Action",
+          "result": "Result",
+          "completeness": "Completeness"
+        },
+        "ratings": {
+          "DEEP": "Deep",
+          "INTERMEDIATE": "Intermediate",
+          "SURFACE": "Surface"
+        },
+        "exampleAnswer": {
+          "title": "Structured Answer Example",
+          "description": "This is an example answer written using the STAR methodology based on actual project experience. Hover over each section to see what it represents."
+        },
+        "streaming": {
+          "generating": "Generating AI Feedback",
+          "generatingFeedback": "Generating feedback...",
+          "generatingGuideAnswer": "Generating example answer...",
+          "streamingInProgress": "Analyzing your answer and generating personalized feedback...",
+          "error": "Failed to stream feedback. Please try again."
+        }
+      },
+      "actions": {
+        "primary": {
+          "submitAnswer": "Submit Answer"
+        },
+        "secondary": {
+          "retryAnswer": "Answer Again",
+          "viewExample": "AI Example Answer",
+          "nextQuestion": "Next Question",
+          "finishPractice": "Finish Practice",
+          "backToQuestions": "Back to Questions"
+        }
+      },
+      "states": {
+        "loading": "Loading...",
+        "submitting": "Submitting...",
+        "error": "An error occurred",
+        "retry": "Try Again",
+        "completed": "Completed"
+      },
+      "navigation": {
+        "questionProgress": "Question {current} / {total}",
+        "timeSpent": "Time spent: {time}",
+        "currentSession": "Current Session"
+      },
+      "errors": {
+        "questionNotFound": "Question not found",
+        "sessionExpired": "Session has expired",
+        "submitFailed": "Failed to submit answer",
+        "networkError": "Please check your network connection",
+        "tryAgain": "Please try again"
+      }
+    }
+  },
+  "new": {
+    "form": {
+      "nameLabel": "Interview Preparation Project Name",
+      "namePlaceholder": "Enter your interview prep project name",
+      "nameHint": "Use information like position, years of experience, domain, etc.",
+      "roleLabel": "Target Position",
+      "rolePlaceholder": "Select or enter your target position",
+      "roleSearchPlaceholder": "Search or enter position...",
+      "noRolesFound": "No recommended positions.",
+      "useCustomJobTitle": "Use \"{value}\"",
+      "resumeLabel": "Resume & Portfolio",
+      "resumeHint": "For accurate analysis, please combine your <bold>resume</bold> and <bold>portfolio</bold> into <bold>one file</bold>.",
+      "previewLabel": "Preview",
+      "experienceLabel": "Experience List",
+      "cancelButton": "Cancel",
+      "createButton": "Create Project",
+      "uploadingButton": "Uploading...",
+      "creatingButton": "Creating...",
+      "creatingInBackground": "Creating your project. Check the dashboard shortly.",
+      "createSuccess": "Project created successfully!",
+      "retryButton": "Retry",
+      "fileTooLargeTitle": "File is too large",
+      "fileTooLargeDescription": "Please compress PDFs over 20MB before uploading.",
+      "compressWithILovePDF": "Compress with iLovePDF"
+    },
+    "errors": {
+      "titleRequired": "Please enter a project name",
+      "jobTitleRequired": "Please select a position",
+      "resumeRequired": "Please upload your resume",
+      "experienceRequired": "Please enter at least one experience",
+      "pdfOnly": "Only PDF files are allowed",
+      "fileTooLarge": "File size must be under {maxSize}MB",
+      "createFailed": "Failed to create interview preparation. Please try again."
+    },
+    "validation": {
+      "titleRequired": "Please enter a project name",
+      "titleTooLong": "Project name must be 50 characters or less",
+      "jobTitleRequired": "Please select a position",
+      "jobTitleTooLong": "Position must be 50 characters or less",
+      "positionTooLong": "Position must be 50 characters or less",
+      "experienceRequired": "Please enter at least one experience",
+      "required": "This field is required",
+      "tooShort": "Value is too short",
+      "tooLong": "Value is too long"
+    },
+    "experience": {
+      "nameTitle": "Experience Name",
+      "namePlaceholder": "Enter the company name or project name as listed in your resume",
+      "removeLabel": "Remove experience",
+      "addButton": "Add Experience",
+      "instructions": {
+        "line1": "Enter the <b>exact names</b> of experiences listed in your resume (company names, side projects, etc.)",
+        "line2": "<b>Only entered experiences</b> will be used for interview preparation"
+      }
+    },
+    "pdfViewer": {
+      "defaultTitle": "Preview",
+      "iframeTitle": "Resume Preview",
+      "placeholder": {
+        "title": "Upload your resume",
+        "description": "Upload a PDF file from the left panel to preview it here."
+      }
+    },
+    "jobRoles": {
+      "backend": "Backend Developer",
+      "frontend": "Frontend Developer",
+      "fullstack": "Full Stack Developer",
+      "devops": "DevOps Engineer",
+      "dataEngineer": "Data Engineer",
+      "dataScientist": "Data Scientist",
+      "aiAgentEngineer": "AI Agent Engineer"
+    }
+  }
+}

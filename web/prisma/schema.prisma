@@ -1,0 +1,474 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+// ==========================================
+// Core Models
+// ==========================================
+
+model User {
+  // Clerk User ID를 Primary Key로 사용 (예: "user_2gq7E...")
+  id              String  @id
+  email           String  @unique
+  firstName       String? @map("first_name")
+  lastName        String? @map("last_name")
+  profileImageUrl String? @map("profile_image_url")
+
+  // GDPR compliance
+  deletedAt           DateTime? // Soft delete timestamp
+  deletionRequestedAt DateTime? // When user requested deletion
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  fileUploads           FileUpload[]
+  interviewPreparations InterviewPreparation[]
+  structuredJDs         StructuredJD[]
+
+  @@map("users")
+}
+
+model InterviewPreparation {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Project Identification
+  title String
+
+  // Job Information
+  jobTitle String?
+
+  // Resume Summary (AI parsed - 이력서 전문 요약, 핵심 문장 배열)
+  summary           String[] @default([])
+  yearsOfExperience Int? // 총 경력 연수 (중복 기간 제거, 반올림)
+
+  // Processing Status
+  status       PreparationStatus @default(PENDING)
+  errorMessage String? // Error details if analysis failed
+  errorCode    String? // Structured error code for client handling
+  progress     Int               @default(0) // Progress percentage (0-100)
+
+  // Auto Question Generation Tracking
+  totalQuestionGenTasks     Int? @map("total_question_gen_tasks")     // Total number of question generation tasks
+  completedQuestionGenTasks Int? @map("completed_question_gen_tasks") // Completed question generation tasks
+
+  // Analysis Tracking
+  analysisStartedAt   DateTime?
+  analysisCompletedAt DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  resumeFile    FileUpload?    @relation("ResumeFile")
+  structuredJD  StructuredJD?
+  webhookEvents WebhookEvent[]
+
+  // Direct relations to experiences (replacing Resume intermediary)
+  careers    CareerExperience[]
+  projects   ProjectExperience[]
+  educations CandidateEducation[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("interview_preparations")
+}
+
+
+model CandidateEducation {
+  id       Int     @id @default(autoincrement())
+
+  // Direct relation to InterviewPreparation (replacing Resume intermediary)
+  interviewPreparationId String
+  interviewPreparation   InterviewPreparation @relation(fields: [interviewPreparationId], references: [id], onDelete: Cascade)
+
+  institution String
+  degree      DegreeType?
+  major       String?
+  startDate   String?     @db.VarChar(7) // YYYY-MM format
+  endDate     String?     @db.VarChar(7)
+  description String
+
+  @@index([interviewPreparationId])
+  @@map("candidate_educations")
+}
+
+model CareerExperience {
+  id       Int     @id @default(autoincrement())
+
+  // Direct relation to InterviewPreparation (replacing Resume intermediary)
+  interviewPreparationId String
+  interviewPreparation   InterviewPreparation @relation(fields: [interviewPreparationId], references: [id], onDelete: Cascade)
+
+  company            String
+  companyDescription String
+  employeeType       EmployeeType?
+  jobLevel           String?
+  startDate          String?      @db.VarChar(7)
+  endDate            String?      @db.VarChar(7)
+  isCurrent          Boolean      @default(false)
+
+  // Technical details
+  techStack           String[]
+  architecture        String?
+  architectureMermaid String?  @db.Text // Mermaid diagram code
+  position            String[] // Roles/positions held
+  links               String[] // URLs (GitHub, portfolio, etc.)
+
+  // Ordering & Timestamps
+  index     Int      @default(0) // Global ordering by keyAchievements count (desc)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  keyAchievements KeyAchievement[]
+
+  @@index([interviewPreparationId])
+  @@map("career_experiences")
+}
+
+model ProjectExperience {
+  id       Int     @id @default(autoincrement())
+
+  // Direct relation to InterviewPreparation (replacing Resume intermediary)
+  interviewPreparationId String
+  interviewPreparation   InterviewPreparation @relation(fields: [interviewPreparationId], references: [id], onDelete: Cascade)
+
+  projectName        String
+  projectDescription String? // Project scope and purpose (AI: nullable)
+  projectType        ProjectType? // AI: nullable
+  teamSize           Int?
+  teamComposition    String?  // Team structure description (e.g., "Backend: 2, Frontend: 2")
+  startDate          String?  @db.VarChar(7)
+  endDate            String?  @db.VarChar(7)
+  isCurrent          Boolean  @default(false)
+
+  // Technical details
+  techStack           String[]
+  architecture        String?
+  architectureMermaid String?  @db.Text // Mermaid diagram code
+  position            String[] // Positions/responsibilities
+  links               String[] // URLs (GitHub, portfolio, etc.)
+
+  // Ordering & Timestamps
+  index     Int      @default(0) // Global ordering by keyAchievements count (desc)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  keyAchievements KeyAchievement[]
+
+  @@index([interviewPreparationId])
+  @@map("project_experiences")
+}
+
+model KeyAchievement {
+  id Int @id @default(autoincrement())
+
+  // Denormalized userId for direct ownership verification
+  // Eliminates 3-level JOIN: KeyAchievement → Experience → InterviewPreparation → User
+  userId String? @map("user_id")
+
+  // Polymorphic relation (belongs to Career OR Project)
+  careerExperienceId  Int?
+  projectExperienceId Int?
+  careerExperience    CareerExperience?  @relation(fields: [careerExperienceId], references: [id], onDelete: Cascade)
+  projectExperience   ProjectExperience? @relation(fields: [projectExperienceId], references: [id], onDelete: Cascade)
+
+  // STAR-L methodology fields
+  title       String   // Summary of the achievement
+  problems    String[] @default([]) // Situation/Task - The challenges or requirements
+  actions     String[] @default([]) // Technical actions taken
+  results     String[] @default([]) // Quantitative/qualitative outcomes
+  reflections String[] @default([]) // Learning - Insights and takeaways
+
+  orderIndex Int @default(0)
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Related questions - Cascade delete when KeyAchievement is deleted
+  questions Question[]
+
+  @@index([userId])
+  @@index([careerExperienceId])
+  @@index([projectExperienceId])
+  @@map("key_achievements")
+}
+
+// ==========================================
+// Q&A Models
+// ==========================================
+
+model Question {
+  id String @id @default(cuid())
+
+  // KeyAchievement reference - Primary ownership
+  // Path to InterviewPreparation: Question → KeyAchievement → Experience → InterviewPreparation
+  keyAchievementId Int?
+  keyAchievement   KeyAchievement? @relation(fields: [keyAchievementId], references: [id], onDelete: Cascade)
+
+  // Question hierarchy
+  parentQuestionId  String?
+  parentQuestion    Question?  @relation("FollowUp", fields: [parentQuestionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  followUpQuestions Question[] @relation("FollowUp")
+
+  // Question content
+  text       String
+  category   QuestionCategory?
+  orderIndex Int               @default(0)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  answers Answer[]
+
+  @@index([parentQuestionId])
+  @@index([keyAchievementId])
+  @@map("questions")
+}
+
+model Answer {
+  id         String   @id @default(cuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  // Answer content
+  text    String       @db.Text
+  status  AnswerStatus @default(DRAFT)
+  version Int          @default(1) // For versioning answers
+
+  // Timing
+  startedAt      DateTime  @default(now())
+  submittedAt    DateTime?
+  lastAutoSaveAt DateTime? // For auto-save functionality
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  feedback Feedback?
+
+  @@index([questionId])
+  @@index([status])
+  @@map("answers")
+}
+
+model Feedback {
+  id       String @id @default(cuid())
+  answerId String @unique
+  answer   Answer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+
+  // AI-generated feedback
+  strengths   String[]
+  weaknesses  String[]
+  suggestions String[]
+  rating      Rating // SURFACE, INTERMEDIATE, DEEP
+
+  // Rating rationale - 해당 등급을 부여한 핵심 이유들
+  // V2에서 추가: rating과 함께 평가 근거를 저장
+  ratingRationale String[] @default([])
+
+  // Detailed scores (0-10)
+  technicalAccuracy    Rating?
+  communicationClarity Rating?
+  depthOfKnowledge     Rating?
+
+  // Guide answer (AI-generated structured answer for reference)
+  // 각 피드백마다 해당 답변에 최적화된 가이드 답변 제공
+  guideAnswer Json? // StructuredGuideAnswer stored as JSON
+
+  // Metadata
+  generatedAt DateTime @default(now())
+
+  @@map("feedbacks")
+}
+
+// ==========================================
+// File Management Models
+// ==========================================
+
+model FileUpload {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // File metadata
+  fileName String
+  fileType FileType // PDF, DOCX, DOC
+  fileSize Int // Size in bytes
+  mimeType String
+
+  // Storage information
+  storageUrl  String // Public URL for file access
+  storagePath String // Internal storage path
+  bucketName  String  @default("resumes")
+  checksum    String? // File integrity check
+
+  // Security scanning
+  scanStatus  FileScanStatus @default(PENDING)
+  scanMessage String? // Scan results/error message
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations - Resume file for interview preparation
+  interviewPreparationId String?               @unique
+  interviewPreparation   InterviewPreparation? @relation("ResumeFile", fields: [interviewPreparationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("file_uploads")
+}
+
+model StructuredJD {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Job description content
+  companyName    String
+  jobTitle       String
+  jobDescription String @db.Text
+
+  // Structured job information
+  cultureAndValues   String[] // Company culture points
+  teamIntroduction   String[] // Team description
+  coreServiceProduct String[] // Main products/services
+  techStack          String[] // Required technologies
+  responsibilities   String[] // Job responsibilities
+  qualifications     Json // Required and preferred qualifications
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  interviewPreparationId String?               @unique
+  interviewPreparation   InterviewPreparation? @relation(fields: [interviewPreparationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("structured_jds")
+}
+
+model WebhookEvent {
+  id            String                @id @default(cuid())
+  userId        String                @map("user_id") // Realtime 구독용
+  preparationId String?
+  preparation   InterviewPreparation? @relation(fields: [preparationId], references: [id], onDelete: Cascade)
+
+  // LangGraph workflow tracking
+  graphName String // Which LangGraph workflow
+  runId     String // LangGraph run identifier
+  threadId  String // LangGraph thread identifier
+
+  // Processing status
+  status      WebhookStatus @default(PENDING)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  completedAt DateTime?
+  error       Json? // Error details if failed
+  metadata    Json? // Additional workflow data
+
+  @@index([userId, graphName]) // Realtime 구독용 복합 인덱스
+  @@index([preparationId])
+  @@index([runId])
+  @@index([threadId])
+  @@map("webhook_events")
+}
+
+// ==========================================
+// Enums
+// ==========================================
+
+enum PreparationStatus {
+  PENDING // Initial state, waiting for resume upload
+  VALIDATING // Validating uploaded files
+  ANALYZING // AI processing resume and JD
+  READY // Analysis complete, questions generated
+  FAILED // Analysis failed with errors
+  ARCHIVED // User archived this preparation
+}
+
+enum QuestionCategory {
+  TECHNICAL_DECISION // Technical Decision Making - 설계 단계에서의 논리와 전략 검증
+  TECHNICAL_DEPTH // Technical Depth & Principles - 도구의 작동 원리와 CS 기초 지식 검증
+  PROBLEM_SOLVING // Problem Solving & Verification - 논리적 해결 능력과 성과의 인과관계 검증
+  SCALABILITY // Scalability - 미래의 시야와 아키텍처적 한계 검증
+}
+
+enum AnswerStatus {
+  DRAFT // Answer being written
+  SUBMITTED // Answer submitted for evaluation
+  EVALUATED // Answer has been evaluated with feedback
+}
+
+enum Rating {
+  SURFACE // Basic understanding, surface-level answer
+  INTERMEDIATE // Good understanding, adequate depth
+  DEEP // Excellent understanding, comprehensive answer
+}
+
+enum EmployeeType {
+  FULL_TIME // Regular full-time employment
+  PART_TIME // Part-time employment
+  INTERN
+  CONTRACT
+  FREELANCE
+}
+
+enum ProjectType {
+  PERSONAL // Personal side projects
+  TEAM // Team projects at work/school
+  OPEN_SOURCE // Open source contributions
+  ACADEMIC // University/school projects
+  HACKATHON // Hackathon projects
+  FREELANCE // Freelance work projects
+}
+
+enum FileType {
+  PDF
+  DOCX
+  DOC
+}
+
+enum FileScanStatus {
+  PENDING
+  SCANNING
+  CLEAN
+  SUSPICIOUS
+  FAILED
+}
+
+enum WebhookStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  ERROR
+  TIMEOUT
+  INTERRUPTED
+}
+
+enum ExperienceType {
+  CAREER
+  PROJECT
+  GENERAL
+}
+
+enum DegreeType {
+  BACHELOR
+  MASTER
+  DOCTOR
+  HIGH_SCHOOL
+  ASSOCIATE
+  OTHER
+}

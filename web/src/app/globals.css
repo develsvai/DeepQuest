@@ -1,0 +1,358 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: hsl(48 33.3333% 97.0588%);
+  --foreground: hsl(48 19.6078% 20%);
+  --card: hsl(48 33.3333% 97.0588%);
+  --card-foreground: hsl(60 2.5641% 7.6471%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(50.7692 19.403% 13.1373%);
+  --primary: hsl(15.1111 55.5556% 52.3529%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(46.1538 22.807% 88.8235%);
+  --secondary-foreground: hsl(50.7692 8.4967% 30%);
+  --muted: hsl(44 29.4118% 90%);
+  --muted-foreground: hsl(50 2.3622% 50.1961%);
+  --accent: hsl(46.1538 22.807% 88.8235%);
+  --accent-foreground: hsl(50.7692 19.403% 13.1373%);
+  --destructive: hsl(0 84.2365% 60.1961%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(50 7.5% 84.3137%);
+  --input: hsl(50.7692 7.9755% 68.0392%);
+  --ring: hsl(15.1111 55.5556% 52.3529%);
+  --stone: hsl(60 3% 17%);
+  --stone-foreground: hsl(0 0% 98%);
+  --chart-1: hsl(18.2813 57.1429% 43.9216%);
+  --chart-2: hsl(251.4545 84.6154% 74.5098%);
+  --chart-3: hsl(46.1538 28.2609% 81.9608%);
+  --chart-4: hsl(256.5517 49.1525% 88.4314%);
+  --chart-5: hsl(17.7778 60% 44.1176%);
+  --feedback-strengths: hsl(142 71% 45%);
+  --feedback-improvements: hsl(21 95% 52%);
+  --feedback-suggestions: hsl(221 83% 53%);
+  --highlight-1: 255, 235, 59;
+  --highlight-2: 76, 175, 80;
+  --highlight-3: 33, 150, 243;
+  --highlight-4: 156, 39, 176;
+  --highlight-5: 255, 152, 0;
+  --rating-deep: hsl(15.1111 55.5556% 52.3529%);
+  --rating-deep-foreground: hsl(0 0% 100%);
+  --rating-intermediate: hsl(15 42% 68%);
+  --rating-intermediate-foreground: hsl(48 19.6078% 20%);
+  --rating-surface: hsl(15 28% 85%);
+  --rating-surface-foreground: hsl(48 19.6078% 20%);
+  --sidebar: hsl(51.4286 25.9259% 94.7059%);
+  --sidebar-foreground: hsl(60 2.521% 23.3333%);
+  --sidebar-primary: hsl(15.1111 55.5556% 52.3529%);
+  --sidebar-primary-foreground: hsl(0 0% 98.4314%);
+  --sidebar-accent: hsl(46.1538 22.807% 88.8235%);
+  --sidebar-accent-foreground: hsl(0 0% 20.3922%);
+  --sidebar-border: hsl(0 0% 92.1569%);
+  --sidebar-ring: hsl(0 0% 70.9804%);
+  --font-sans-fallback:
+    -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+    'Pretendard Variable', Pretendard, Roboto, 'Noto Sans KR', 'Segoe UI',
+    'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  --radius: 0.5rem;
+  --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+  --shadow-sm:
+    0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+  --shadow-md:
+    0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
+  --shadow-lg:
+    0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
+  --shadow-xl:
+    0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
+  --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
+
+.dark {
+  --background: hsl(60 2.7027% 14.5098%);
+  --foreground: hsl(46.1538 9.7744% 73.9216%);
+  --card: hsl(60 2.7027% 14.5098%);
+  --card-foreground: hsl(48 33.3333% 97.0588%);
+  --popover: hsl(60 2.1277% 18.4314%);
+  --popover-foreground: hsl(60 5.4545% 89.2157%);
+  --primary: hsl(14.7692 63.1068% 59.6078%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(48 33.3333% 97.0588%);
+  --secondary-foreground: hsl(60 2.1277% 18.4314%);
+  --muted: hsl(60 3.8462% 10.1961%);
+  --muted-foreground: hsl(51.4286 8.8608% 69.0196%);
+  --accent: hsl(48 10.6383% 9.2157%);
+  --accent-foreground: hsl(51.4286 25.9259% 94.7059%);
+  --destructive: hsl(0 84.2365% 60.1961%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(60 5.0847% 23.1373%);
+  --input: hsl(52.5 5.1282% 30.5882%);
+  --ring: hsl(14.7692 63.1068% 59.6078%);
+  --stone: hsl(60 5% 90%);
+  --stone-foreground: hsl(60 3% 17%);
+  --chart-1: hsl(18.2813 57.1429% 43.9216%);
+  --chart-2: hsl(251.4545 84.6154% 74.5098%);
+  --chart-3: hsl(48 10.6383% 9.2157%);
+  --chart-4: hsl(248.2759 25.2174% 22.549%);
+  --chart-5: hsl(17.7778 60% 44.1176%);
+  --feedback-strengths: hsl(142 71% 45%);
+  --feedback-improvements: hsl(21 95% 52%);
+  --feedback-suggestions: hsl(221 83% 53%);
+  --highlight-1: 255, 235, 59;
+  --highlight-2: 76, 175, 80;
+  --highlight-3: 33, 150, 243;
+  --highlight-4: 156, 39, 176;
+  --highlight-5: 255, 152, 0;
+  --rating-deep: hsl(14.7692 63.1068% 59.6078%);
+  --rating-deep-foreground: hsl(0 0% 100%);
+  --rating-intermediate: hsl(15 50% 48%);
+  --rating-intermediate-foreground: hsl(0 0% 100%);
+  --rating-surface: hsl(15 35% 38%);
+  --rating-surface-foreground: hsl(0 0% 100%);
+  --sidebar: hsl(30 3.3333% 11.7647%);
+  --sidebar-foreground: hsl(46.1538 9.7744% 73.9216%);
+  --sidebar-primary: hsl(0 0% 20.3922%);
+  --sidebar-primary-foreground: hsl(0 0% 98.4314%);
+  --sidebar-accent: hsl(60 3.4483% 5.6863%);
+  --sidebar-accent-foreground: hsl(46.1538 9.7744% 73.9216%);
+  --sidebar-border: hsl(0 0% 92.1569%);
+  --sidebar-ring: hsl(0 0% 70.9804%);
+  --font-sans-fallback:
+    -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+    'Pretendard Variable', Pretendard, Roboto, 'Noto Sans KR', 'Segoe UI',
+    'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  --radius: 0.5rem;
+  --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+  --shadow-sm:
+    0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+  --shadow-md:
+    0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
+  --shadow-lg:
+    0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
+  --shadow-xl:
+    0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
+  --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-stone: var(--stone);
+  --color-stone-foreground: var(--stone-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-feedback-strengths: var(--feedback-strengths);
+  --color-feedback-improvements: var(--feedback-improvements);
+  --color-feedback-suggestions: var(--feedback-suggestions);
+  --color-rating-deep: var(--rating-deep);
+  --color-rating-deep-foreground: var(--rating-deep-foreground);
+  --color-rating-intermediate: var(--rating-intermediate);
+  --color-rating-intermediate-foreground: var(--rating-intermediate-foreground);
+  --color-rating-surface: var(--rating-surface);
+  --color-rating-surface-foreground: var(--rating-surface-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+    var(--font-pretendard), 'Pretendard Variable', Pretendard, Roboto,
+    'Noto Sans KR', 'Segoe UI', 'Malgun Gothic', 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+  --font-mono:
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, monospace;
+  --font-serif: var(--font-serif);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    letter-spacing: var(--tracking-normal);
+  }
+}
+
+@import '@clerk/themes/shadcn.css';
+
+/* Custom animations for collapsible components */
+@keyframes accordion-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+.animate-accordion-down {
+  animation: accordion-down 0.3s ease-out;
+}
+
+.animate-accordion-up {
+  animation: accordion-up 0.3s ease-out;
+}
+
+/* Collapsible animations (for sidebar, etc.) */
+@keyframes collapsible-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+.animate-collapsible-down {
+  animation: collapsible-down 0.2s ease-out;
+}
+
+.animate-collapsible-up {
+  animation: collapsible-up 0.2s ease-out;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================
+   Landing Page v2 - Editorial Warmth Animations
+   ============================================ */
+
+/* Fade up animation for staggered reveals */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scale in animation for cards */
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Clip reveal for dramatic text entrances */
+@keyframes clip-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Gentle float for visual elements */
+@keyframes gentle-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Radial gradient utility for CTA section */
+.bg-gradient-radial {
+  background: radial-gradient(var(--tw-gradient-stops));
+}

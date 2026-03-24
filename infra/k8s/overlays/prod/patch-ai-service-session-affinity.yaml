@@ -1,0 +1,11 @@
+# Session affinity 기본 적용 (overlay에서 명시). LangGraph inmem 스레드/상태가 같은 AI 파드로 가도록.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-service
+  namespace: deep-quest
+spec:
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800  # 3시간

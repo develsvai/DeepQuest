@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: langgraph-run-metrics-exporter
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/component: langgraph-run-metrics
+    release: prometheus
+spec:
+  namespaceSelector:
+    matchNames:
+      - deep-quest
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: deep-quest
+      app.kubernetes.io/component: langgraph-run-metrics
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s

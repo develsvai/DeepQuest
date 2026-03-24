@@ -1,0 +1,163 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-server
+  namespace: deep-quest
+  labels:
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/component: ai
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: deep-quest
+      app.kubernetes.io/component: ai
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: deep-quest
+        app.kubernetes.io/component: ai
+      annotations:
+        # ConfigMap/Secret 변경 시 자동 롤아웃을 위한 checksum
+        checksum/config: "{{ include (print $.Template.BasePath \"/configmap.yaml\") . | sha256sum }}"
+    spec:
+      serviceAccountName: deep-quest-sa
+      terminationGracePeriodSeconds: 30
+      
+      initContainers:
+        # PostgreSQL 연결 대기
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for PostgreSQL..."
+              until nc -z postgres-service 5432; do
+                echo "PostgreSQL is unavailable - sleeping"
+                sleep 2
+              done
+              echo "PostgreSQL is ready!"
+        # Redis 연결 대기 (2단계: LangGraph 프로덕션 Broker)
+        - name: wait-for-redis
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Redis..."
+              until nc -z redis-service 6379; do
+                echo "Redis is unavailable - sleeping"
+                sleep 2
+              done
+              echo "Redis is ready!"
+      
+      containers:
+        - name: ai
+          image: harbor.192.168.0.110.nip.io/deep-quest/ai:latest
+          imagePullPolicy: Always
+          
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          
+          envFrom:
+            - configMapRef:
+                name: ai-config
+            - secretRef:
+                name: ai-secret
+          
+          env:
+            # PostgreSQL credentials from secret
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            # LangGraph: 파드당 동시 처리량 (큐 컨슈머/워커 관련). 기본 1 워커 → 대기열 병목 완화
+            - name: N_JOBS_PER_WORKER
+              value: "10"
+            # 2단계: LangGraph 프로덕션 Standalone (Redis + Postgres)
+            - name: REDIS_URI
+              value: "redis://redis-service:6379"
+            # LangGraph 프로덕션용 Postgres 연결. ai-secret 의 LANGGRAPH_DATABASE_URI 사용.
+            - name: DATABASE_URI
+              valueFrom:
+                secretKeyRef:
+                  name: ai-secret
+                  key: LANGGRAPH_DATABASE_URI
+                  optional: true
+          
+          resources:
+            requests:
+              cpu: "200m"
+              memory: 2Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+          
+          livenessProbe:
+            httpGet:
+              path: /ok
+              port: 8000
+            initialDelaySeconds: 40
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          
+          readinessProbe:
+            httpGet:
+              path: /ok
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          
+          volumeMounts:
+            - name: ai-data
+              mountPath: /app/data
+            - name: ai-logs
+              mountPath: /app/logs
+            - name: langgraph-cache
+              mountPath: /app/.langgraph_api
+          
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+      
+      volumes:
+        - name: ai-data
+          emptyDir: {}
+        - name: ai-logs
+          emptyDir: {}
+        - name: langgraph-cache
+          emptyDir: {}
+      
+      imagePullSecrets:
+        - name: harbor-pull-secret
+      
+      # Pod Anti-Affinity: 다른 노드에 분산 배치
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: deep-quest
+                    app.kubernetes.io/component: ai
+                topologyKey: kubernetes.io/hostname

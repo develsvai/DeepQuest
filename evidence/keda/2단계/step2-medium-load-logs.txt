@@ -1,0 +1,331 @@
+# Step 2 medium-load logs
+
+## Analysis summary
+- Screenshot set shows KEDA desired replicas reached 10 while ai-server available replicas plateaued at 4.
+- Worker Busy reached about 160, which aligns with 4 available ai-server pods * 40 workers.
+- Queue Backlog climbed to roughly 25K while Jobs Completed/sec peaked around 1.8-2.0 ops/s.
+- Ingress process RPS stayed around 300-350 req/s with P95 about 300-380ms and P99 about 500ms.
+- Locust aggregated throughput reached about 315-373 req/s with only 1 failure (0.00%), a single 502 on thread creation.
+- Interpretation: KEDA scaling is active, but effective throughput is capped by cluster scheduling/capacity rather than request ingress.
+
+## ScaledObject / HPA
+NAME                                  SCALETARGETKIND      SCALETARGETNAME   MIN   MAX   READY   ACTIVE   FALLBACK   PAUSED   TRIGGERS     AUTHENTICATIONS   AGE
+scaledobject.keda.sh/ai-server-keda   apps/v1.Deployment   ai-server         1     10    True    True     False      False    prometheus                     18h
+
+NAME                                                     REFERENCE               TARGETS                        MINPODS   MAXPODS   REPLICAS   AGE
+horizontalpodautoscaler.autoscaling/ai-server-keda-hpa   Deployment/ai-server    2606500m/40 (avg)              1         10        10         8m13s
+horizontalpodautoscaler.autoscaling/web-server-hpa       Deployment/web-server   cpu: 0%/70%, memory: 33%/80%   4         10        10         36d
+
+## Describe ScaledObject
+Name:         ai-server-keda
+Namespace:    deep-quest
+Labels:       app.kubernetes.io/component=ai
+              app.kubernetes.io/name=deep-quest
+              environment=prod
+              scaledobject.keda.sh/name=ai-server-keda
+Annotations:  argocd.argoproj.io/tracking-id: deepquest-infra:keda.sh/ScaledObject:deep-quest/ai-server-keda
+API Version:  keda.sh/v1alpha1
+Kind:         ScaledObject
+Metadata:
+  Creation Timestamp:  2026-03-23T05:45:42Z
+  Finalizers:
+    finalizer.keda.sh
+  Generation:        2
+  Resource Version:  49995209
+  UID:               e0778298-aaf9-422b-9af9-ceeb5d05e546
+Spec:
+  Advanced:
+    Horizontal Pod Autoscaler Config:
+      Behavior:
+        Scale Down:
+          Policies:
+            Period Seconds:              60
+            Type:                        Pods
+            Value:                       1
+          Select Policy:                 Max
+          Stabilization Window Seconds:  300
+        Scale Up:
+          Policies:
+            Period Seconds:              30
+            Type:                        Pods
+            Value:                       2
+            Period Seconds:              30
+            Type:                        Percent
+            Value:                       100
+          Select Policy:                 Max
+          Stabilization Window Seconds:  0
+      Name:                              ai-server-keda-hpa
+    Scaling Modifiers:
+  Cooldown Period:    300
+  Max Replica Count:  10
+  Min Replica Count:  1
+  Polling Interval:   15
+  Scale Target Ref:
+    Name:  ai-server
+  Triggers:
+    Metadata:
+      Activation Threshold:  1
+      Metric Name:           ai_job_queue_pending
+      Query:                 sum(ai_job_queue_pending)
+      Server Address:        http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
+      Threshold:             40
+    Type:                    prometheus
+Status:
+  Authentications Types:  
+  Conditions:
+    Message:  ScaledObject is defined correctly and is ready for scaling
+    Reason:   ScaledObjectReady
+    Status:   True
+    Type:     Ready
+    Message:  Scaling is performed because triggers are active
+    Reason:   ScalerActive
+    Status:   True
+    Type:     Active
+    Message:  No fallbacks are active on this scaled object
+    Reason:   NoFallbackFound
+    Status:   False
+    Type:     Fallback
+    Message:  pause annotation removed for ScaledObject
+    Reason:   ScaledObjectUnpaused
+    Status:   False
+    Type:     Paused
+  External Metric Names:
+    s0-prometheus
+  Hpa Name:                ai-server-keda-hpa
+  Last Active Time:        2026-03-24T00:05:17Z
+  Original Replica Count:  1
+  Scale Target Gvkr:
+    Group:            apps
+    Kind:             Deployment
+    Resource:         deployments
+    Version:          v1
+  Scale Target Kind:  apps/v1.Deployment
+  Triggers Activity:
+    s0-prometheus:
+      Is Active:   true
+  Triggers Types:  prometheus
+Events:
+  Type    Reason                Age                  From           Message
+  ----    ------                ----                 ----           -------
+  Normal  KEDAScalersStopped    10m (x3 over 18h)    keda-operator  Stopped scalers watch
+  Normal  ScaledObjectPaused    10m (x3 over 18h)    keda-operator  ScaledObject is paused
+  Normal  KEDAScalersStarted    8m13s (x4 over 18h)  keda-operator  Scaler prometheus is built
+  Normal  KEDAScalersStarted    8m13s (x4 over 18h)  keda-operator  Started scalers watch
+  Normal  ScaledObjectUnpaused  8m13s (x4 over 17h)  keda-operator  pause annotation removed for ScaledObject
+
+## ai-server deployment and pods
+deployment.apps/ai-server                        4/10    10           4           33d
+pod/ai-server-7c764d5867-5skpt                       0/1     Pending     0          5m28s
+pod/ai-server-7c764d5867-8447r                       0/1     Pending     0          5m58s
+pod/ai-server-7c764d5867-9kqhw                       0/1     Pending     0          5m58s
+pod/ai-server-7c764d5867-b8mrz                       0/1     Pending     0          5m28s
+pod/ai-server-7c764d5867-bkbx2                       1/1     Running     0          5m58s
+pod/ai-server-7c764d5867-g8fc9                       1/1     Running     0          10m
+pod/ai-server-7c764d5867-jw6lf                       1/1     Running     0          6m28s
+pod/ai-server-7c764d5867-nwbp8                       0/1     Pending     0          5m28s
+pod/ai-server-7c764d5867-plzhf                       1/1     Running     0          6m28s
+pod/ai-server-7c764d5867-wqlzj                       0/1     Pending     0          5m28s
+
+## Recent deep-quest events
+5m58s       Normal    Pulled                 pod/ai-server-7c764d5867-bkbx2               Container image "busybox:1.36" already present on machine
+5m58s       Normal    Scheduled              pod/ai-server-7c764d5867-bkbx2               Successfully assigned deep-quest/ai-server-7c764d5867-bkbx2 to k8s-worker-01
+5m58s       Normal    SuccessfulCreate       replicaset/ai-server-7c764d5867              Created pod: ai-server-7c764d5867-9kqhw
+5m58s       Normal    SuccessfulCreate       replicaset/ai-server-7c764d5867              Created pod: ai-server-7c764d5867-bkbx2
+5m58s       Normal    Started                pod/ai-server-7c764d5867-bkbx2               Started container wait-for-postgres
+5m58s       Normal    SuccessfulRescale      horizontalpodautoscaler/ai-server-keda-hpa   New size: 6; reason: external metric s0-prometheus(&LabelSelector{MatchLabels:map[string]string{scaledobject.keda.sh/name: ai-server-keda,},MatchExpressions:[]LabelSelectorRequirement{},}) above target
+5m58s       Normal    ScalingReplicaSet      deployment/ai-server                         Scaled up replica set ai-server-7c764d5867 to 6 from 3
+5m58s       Normal    Pulled                 pod/ai-server-7c764d5867-bkbx2               Container image "busybox:1.36" already present on machine
+5m57s       Normal    Pulling                pod/ai-server-7c764d5867-bkbx2               Pulling image "harbor.192.168.0.110.nip.io/deep-quest/ai:157-59b85ab"
+5m57s       Normal    Started                pod/ai-server-7c764d5867-bkbx2               Started container wait-for-redis
+5m57s       Normal    Created                pod/ai-server-7c764d5867-bkbx2               Created container: wait-for-redis
+5m56s       Normal    Pulled                 pod/ai-server-7c764d5867-bkbx2               Successfully pulled image "harbor.192.168.0.110.nip.io/deep-quest/ai:157-59b85ab" in 941ms (941ms including waiting). Image size: 8889059480 bytes.
+5m56s       Normal    Created                pod/ai-server-7c764d5867-bkbx2               Created container: ai
+5m55s       Normal    Started                pod/ai-server-7c764d5867-bkbx2               Started container ai
+5m47s       Normal    Scheduled              pod/web-server-f64645bf8-mvh95               Successfully assigned deep-quest/web-server-f64645bf8-mvh95 to k8s-worker-03
+5m47s       Normal    SuccessfulCreate       replicaset/web-server-f64645bf8              Created pod: web-server-f64645bf8-mvh95
+5m47s       Normal    SuccessfulRescale      horizontalpodautoscaler/web-server-hpa       New size: 10; reason: cpu resource utilization (percentage of request) above target
+5m47s       Normal    ScalingReplicaSet      deployment/web-server                        Scaled up replica set web-server-f64645bf8 to 10 from 9
+5m46s       Normal    Pulled                 pod/web-server-f64645bf8-mvh95               Container image "busybox:1.36" already present on machine
+5m46s       Normal    Created                pod/web-server-f64645bf8-mvh95               Created container: wait-for-postgres
+5m46s       Normal    Started                pod/web-server-f64645bf8-mvh95               Started container wait-for-postgres
+5m45s       Normal    Pulled                 pod/web-server-f64645bf8-mvh95               Container image "busybox:1.36" already present on machine
+5m45s       Normal    Created                pod/web-server-f64645bf8-mvh95               Created container: wait-for-ai
+5m45s       Normal    Started                pod/web-server-f64645bf8-mvh95               Started container wait-for-ai
+5m44s       Normal    Pulling                pod/web-server-f64645bf8-mvh95               Pulling image "harbor.192.168.0.110.nip.io/deep-quest/web:157-59b85ab"
+5m44s       Normal    Pulled                 pod/web-server-f64645bf8-mvh95               Successfully pulled image "harbor.192.168.0.110.nip.io/deep-quest/web:157-59b85ab" in 236ms (236ms including waiting). Image size: 102509663 bytes.
+5m44s       Normal    Created                pod/web-server-f64645bf8-mvh95               Created container: web
+5m44s       Normal    Started                pod/web-server-f64645bf8-mvh95               Started container web
+5m28s       Normal    SuccessfulCreate       replicaset/ai-server-7c764d5867              (combined from similar events): Created pod: ai-server-7c764d5867-5skpt
+5m28s       Normal    SuccessfulCreate       replicaset/ai-server-7c764d5867              Created pod: ai-server-7c764d5867-b8mrz
+5m28s       Normal    SuccessfulCreate       replicaset/ai-server-7c764d5867              Created pod: ai-server-7c764d5867-nwbp8
+5m28s       Normal    SuccessfulCreate       replicaset/ai-server-7c764d5867              Created pod: ai-server-7c764d5867-wqlzj
+5m28s       Normal    SuccessfulRescale      horizontalpodautoscaler/ai-server-keda-hpa   New size: 10; reason: external metric s0-prometheus(&LabelSelector{MatchLabels:map[string]string{scaledobject.keda.sh/name: ai-server-keda,},MatchExpressions:[]LabelSelectorRequirement{},}) above target
+5m28s       Normal    ScalingReplicaSet      deployment/ai-server                         Scaled up replica set ai-server-7c764d5867 to 10 from 6
+4m34s       Warning   FailedScheduling       pod/ai-server-7c764d5867-5skpt               0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu. preemption: 0/6 nodes are available: 1 Preemption is not helpful for scheduling, 5 No preemption victims found for incoming pod.
+4m34s       Warning   FailedScheduling       pod/ai-server-7c764d5867-b8mrz               0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu. preemption: 0/6 nodes are available: 1 Preemption is not helpful for scheduling, 5 No preemption victims found for incoming pod.
+4m34s       Warning   FailedScheduling       pod/ai-server-7c764d5867-wqlzj               0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu. preemption: 0/6 nodes are available: 1 Preemption is not helpful for scheduling, 5 No preemption victims found for incoming pod.
+4m34s       Warning   FailedScheduling       pod/ai-server-7c764d5867-nwbp8               0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu. preemption: 0/6 nodes are available: 1 Preemption is not helpful for scheduling, 5 No preemption victims found for incoming pod.
+4m34s       Warning   FailedScheduling       pod/ai-server-7c764d5867-8447r               0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu. preemption: 0/6 nodes are available: 1 Preemption is not helpful for scheduling, 5 No preemption victims found for incoming pod.
+4m34s       Warning   FailedScheduling       pod/ai-server-7c764d5867-9kqhw               0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu. preemption: 0/6 nodes are available: 1 Preemption is not helpful for scheduling, 5 No preemption victims found for incoming pod.
+
+## Pending pod scheduling details
+### ai-server-7c764d5867-5skpt
+Events:
+  Type     Reason            Age                    From               Message
+  ----     ------            ----                   ----               -------
+  Warning  FailedScheduling  4m34s (x6 over 5m28s)  default-scheduler  0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu. preemption: 0/6 nodes are available: 1 Preemption is not helpful for scheduling, 5 No preemption victims found for incoming pod.
+
+### ai-server-7c764d5867-8447r
+Events:
+  Type     Reason            Age                    From               Message
+  ----     ------            ----                   ----               -------
+  Warning  FailedScheduling  4m34s (x6 over 5m58s)  default-scheduler  0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu. preemption: 0/6 nodes are available: 1 Preemption is not helpful for scheduling, 5 No preemption victims found for incoming pod.
+
+### ai-server-7c764d5867-9kqhw
+Events:
+  Type     Reason            Age                    From               Message
+  ----     ------            ----                   ----               -------
+  Warning  FailedScheduling  4m34s (x6 over 5m58s)  default-scheduler  0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu. preemption: 0/6 nodes are available: 1 Preemption is not helpful for scheduling, 5 No preemption victims found for incoming pod.
+
+### ai-server-7c764d5867-b8mrz
+Events:
+  Type     Reason            Age                    From               Message
+  ----     ------            ----                   ----               -------
+  Warning  FailedScheduling  4m34s (x6 over 5m28s)  default-scheduler  0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu. preemption: 0/6 nodes are available: 1 Preemption is not helpful for scheduling, 5 No preemption victims found for incoming pod.
+
+### ai-server-7c764d5867-nwbp8
+Events:
+  Type     Reason            Age                    From               Message
+  ----     ------            ----                   ----               -------
+  Warning  FailedScheduling  4m34s (x6 over 5m28s)  default-scheduler  0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu. preemption: 0/6 nodes are available: 1 Preemption is not helpful for scheduling, 5 No preemption victims found for incoming pod.
+
+### ai-server-7c764d5867-wqlzj
+Events:
+  Type     Reason            Age                    From               Message
+  ----     ------            ----                   ----               -------
+  Warning  FailedScheduling  4m34s (x6 over 5m28s)  default-scheduler  0/6 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 5 Insufficient cpu. preemption: 0/6 nodes are available: 1 Preemption is not helpful for scheduling, 5 No preemption victims found for incoming pod.
+
+## KEDA operator logs
+2026-03-23T05:29:12Z	INFO	setup	maxprocs: Updating GOMAXPROCS=1: determined from CPU quota
+2026-03-23T05:29:12Z	INFO	setup	Starting manager
+2026-03-23T05:29:12Z	INFO	setup	KEDA Version: 2.19.0
+2026-03-23T05:29:12Z	INFO	setup	Git Commit: 3f88d60ae92f1174f67738f079f96ec17eeee77f
+2026-03-23T05:29:12Z	INFO	setup	Go Version: go1.25.6
+2026-03-23T05:29:12Z	INFO	setup	Go OS/Arch: linux/amd64
+2026-03-23T05:29:12Z	INFO	setup	Running on Kubernetes 1.30	{"version": "v1.30.14"}
+2026-03-23T05:29:12Z	INFO	setup	WARNING: KEDA 2.19.0 hasn't been tested on Kubernetes v1.30.14
+2026-03-23T05:29:12Z	INFO	setup	You can check recommended versions on https://keda.sh
+2026-03-23T05:29:12Z	INFO	starting server	{"name": "health probe", "addr": "[::]:8081"}
+I0323 05:29:12.845092       1 leaderelection.go:257] attempting to acquire leader lease keda/operator.keda.sh...
+I0323 05:29:28.399013       1 leaderelection.go:271] successfully acquired lease keda/operator.keda.sh
+2026-03-23T05:29:28Z	INFO	Starting EventSource	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "source": "kind source: *v2.HorizontalPodAutoscaler"}
+2026-03-23T05:29:28Z	INFO	Starting EventSource	{"controller": "triggerauthentication", "controllerGroup": "keda.sh", "controllerKind": "TriggerAuthentication", "source": "kind source: *v1alpha1.TriggerAuthentication"}
+2026-03-23T05:29:28Z	INFO	Starting EventSource	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "source": "kind source: *v1alpha1.ScaledObject"}
+2026-03-23T05:29:28Z	INFO	Starting EventSource	{"controller": "scaledjob", "controllerGroup": "keda.sh", "controllerKind": "ScaledJob", "source": "kind source: *v1alpha1.ScaledJob"}
+2026-03-23T05:29:28Z	INFO	Starting EventSource	{"controller": "cloudeventsource", "controllerGroup": "eventing.keda.sh", "controllerKind": "CloudEventSource", "source": "kind source: *v1alpha1.CloudEventSource"}
+2026-03-23T05:29:28Z	INFO	Starting EventSource	{"controller": "clustertriggerauthentication", "controllerGroup": "keda.sh", "controllerKind": "ClusterTriggerAuthentication", "source": "kind source: *v1alpha1.ClusterTriggerAuthentication"}
+2026-03-23T05:29:28Z	INFO	Starting EventSource	{"controller": "clustercloudeventsource", "controllerGroup": "eventing.keda.sh", "controllerKind": "ClusterCloudEventSource", "source": "kind source: *v1alpha1.ClusterCloudEventSource"}
+2026-03-23T05:29:28Z	INFO	Starting Controller	{"controller": "cloudeventsource", "controllerGroup": "eventing.keda.sh", "controllerKind": "CloudEventSource"}
+2026-03-23T05:29:28Z	INFO	Starting workers	{"controller": "cloudeventsource", "controllerGroup": "eventing.keda.sh", "controllerKind": "CloudEventSource", "worker count": 1}
+2026-03-23T05:29:28Z	INFO	Starting Controller	{"controller": "clustertriggerauthentication", "controllerGroup": "keda.sh", "controllerKind": "ClusterTriggerAuthentication"}
+2026-03-23T05:29:28Z	INFO	Starting workers	{"controller": "clustertriggerauthentication", "controllerGroup": "keda.sh", "controllerKind": "ClusterTriggerAuthentication", "worker count": 1}
+2026-03-23T05:29:28Z	INFO	Starting Controller	{"controller": "triggerauthentication", "controllerGroup": "keda.sh", "controllerKind": "TriggerAuthentication"}
+2026-03-23T05:29:28Z	INFO	Starting workers	{"controller": "triggerauthentication", "controllerGroup": "keda.sh", "controllerKind": "TriggerAuthentication", "worker count": 1}
+2026-03-23T05:29:28Z	INFO	Starting Controller	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject"}
+2026-03-23T05:29:28Z	INFO	Starting workers	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "worker count": 5}
+2026-03-23T05:29:28Z	INFO	Starting Controller	{"controller": "scaledjob", "controllerGroup": "keda.sh", "controllerKind": "ScaledJob"}
+2026-03-23T05:29:28Z	INFO	Starting workers	{"controller": "scaledjob", "controllerGroup": "keda.sh", "controllerKind": "ScaledJob", "worker count": 1}
+2026-03-23T05:29:28Z	INFO	Starting Controller	{"controller": "clustercloudeventsource", "controllerGroup": "eventing.keda.sh", "controllerKind": "ClusterCloudEventSource"}
+2026-03-23T05:29:28Z	INFO	Starting workers	{"controller": "clustercloudeventsource", "controllerGroup": "eventing.keda.sh", "controllerKind": "ClusterCloudEventSource", "worker count": 1}
+2026-03-23T05:29:28Z	INFO	cert-rotation	starting cert rotator controller
+2026-03-23T05:29:28Z	INFO	cert-rotation	no cert refresh needed
+2026-03-23T05:29:28Z	INFO	cert-rotation	no cert refresh needed
+2026-03-23T05:29:28Z	INFO	cert-rotation	Ensuring CA cert	{"name": "v1beta1.external.metrics.k8s.io", "gvk": "apiregistration.k8s.io/v1, Kind=APIService", "name": "v1beta1.external.metrics.k8s.io", "gvk": "apiregistration.k8s.io/v1, Kind=APIService"}
+2026-03-23T05:29:28Z	INFO	cert-rotation	certs are ready in /certs
+2026-03-23T05:29:28Z	INFO	cert-rotation	Ensuring CA cert	{"name": "keda-admission", "gvk": "admissionregistration.k8s.io/v1, Kind=ValidatingWebhookConfiguration", "name": "keda-admission", "gvk": "admissionregistration.k8s.io/v1, Kind=ValidatingWebhookConfiguration"}
+2026-03-23T05:29:28Z	INFO	cert-rotation	no cert refresh needed
+2026-03-23T05:29:28Z	INFO	cert-rotation	Ensuring CA cert	{"name": "v1beta1.external.metrics.k8s.io", "gvk": "apiregistration.k8s.io/v1, Kind=APIService", "name": "v1beta1.external.metrics.k8s.io", "gvk": "apiregistration.k8s.io/v1, Kind=APIService"}
+2026-03-23T05:29:28Z	INFO	cert-rotation	Ensuring CA cert	{"name": "keda-admission", "gvk": "admissionregistration.k8s.io/v1, Kind=ValidatingWebhookConfiguration", "name": "keda-admission", "gvk": "admissionregistration.k8s.io/v1, Kind=ValidatingWebhookConfiguration"}
+2026-03-23T05:29:28Z	INFO	cert-rotation	no cert refresh needed
+2026-03-23T05:29:28Z	INFO	cert-rotation	Ensuring CA cert	{"name": "v1beta1.external.metrics.k8s.io", "gvk": "apiregistration.k8s.io/v1, Kind=APIService", "name": "v1beta1.external.metrics.k8s.io", "gvk": "apiregistration.k8s.io/v1, Kind=APIService"}
+2026-03-23T05:29:28Z	INFO	cert-rotation	Ensuring CA cert	{"name": "keda-admission", "gvk": "admissionregistration.k8s.io/v1, Kind=ValidatingWebhookConfiguration", "name": "keda-admission", "gvk": "admissionregistration.k8s.io/v1, Kind=ValidatingWebhookConfiguration"}
+2026-03-23T05:29:28Z	INFO	cert-rotation	no cert refresh needed
+2026-03-23T05:29:28Z	INFO	cert-rotation	Ensuring CA cert	{"name": "v1beta1.external.metrics.k8s.io", "gvk": "apiregistration.k8s.io/v1, Kind=APIService", "name": "v1beta1.external.metrics.k8s.io", "gvk": "apiregistration.k8s.io/v1, Kind=APIService"}
+2026-03-23T05:29:28Z	INFO	cert-rotation	Ensuring CA cert	{"name": "keda-admission", "gvk": "admissionregistration.k8s.io/v1, Kind=ValidatingWebhookConfiguration", "name": "keda-admission", "gvk": "admissionregistration.k8s.io/v1, Kind=ValidatingWebhookConfiguration"}
+2026-03-23T05:29:29Z	INFO	cert-rotation	CA certs are injected to webhooks
+2026-03-23T05:29:29Z	INFO	grpc_server	Starting Metrics Service gRPC Server	{"address": ":9666"}
+2026-03-23T05:29:33Z	INFO	cert-rotation	no cert refresh needed
+2026-03-23T05:29:33Z	INFO	cert-rotation	Ensuring CA cert	{"name": "v1beta1.external.metrics.k8s.io", "gvk": "apiregistration.k8s.io/v1, Kind=APIService", "name": "v1beta1.external.metrics.k8s.io", "gvk": "apiregistration.k8s.io/v1, Kind=APIService"}
+2026-03-23T05:29:33Z	INFO	cert-rotation	Ensuring CA cert	{"name": "keda-admission", "gvk": "admissionregistration.k8s.io/v1, Kind=ValidatingWebhookConfiguration", "name": "keda-admission", "gvk": "admissionregistration.k8s.io/v1, Kind=ValidatingWebhookConfiguration"}
+2026-03-23T05:29:33Z	INFO	cert-rotation	no cert refresh needed
+2026-03-23T05:29:33Z	INFO	cert-rotation	Ensuring CA cert	{"name": "v1beta1.external.metrics.k8s.io", "gvk": "apiregistration.k8s.io/v1, Kind=APIService", "name": "v1beta1.external.metrics.k8s.io", "gvk": "apiregistration.k8s.io/v1, Kind=APIService"}
+2026-03-23T05:29:33Z	INFO	cert-rotation	Ensuring CA cert	{"name": "keda-admission", "gvk": "admissionregistration.k8s.io/v1, Kind=ValidatingWebhookConfiguration", "name": "keda-admission", "gvk": "admissionregistration.k8s.io/v1, Kind=ValidatingWebhookConfiguration"}
+2026-03-23T05:45:42Z	INFO	Reconciling ScaledObject	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "120acb15-4a66-4d91-a729-8772b34f3ae3"}
+2026-03-23T05:45:42Z	INFO	Adding Finalizer for the ScaledObject	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "120acb15-4a66-4d91-a729-8772b34f3ae3"}
+2026-03-23T05:45:42Z	INFO	metadata.finalizers: "finalizer.keda.sh": prefer a domain-qualified finalizer name to avoid accidental conflicts with other finalizer writers	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "120acb15-4a66-4d91-a729-8772b34f3ae3"}
+2026-03-23T05:45:42Z	INFO	Detected resource targeted for scaling	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "120acb15-4a66-4d91-a729-8772b34f3ae3", "resource": "apps/v1.Deployment", "name": "ai-server"}
+2026-03-23T05:45:42Z	INFO	Creating a new HPA	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "120acb15-4a66-4d91-a729-8772b34f3ae3", "HPA.Namespace": "deep-quest", "HPA.Name": "ai-server-keda-hpa"}
+2026-03-23T05:45:43Z	INFO	Initializing Scaling logic according to ScaledObject Specification	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "120acb15-4a66-4d91-a729-8772b34f3ae3"}
+2026-03-23T05:45:43Z	INFO	Reconciling ScaledObject	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "97af1dfc-47c6-4bbf-bad7-28345b5341de"}
+2026-03-23T05:45:43Z	INFO	Detected resource targeted for scaling	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "97af1dfc-47c6-4bbf-bad7-28345b5341de", "resource": "apps/v1.Deployment", "name": "ai-server"}
+2026-03-23T05:45:43Z	INFO	Reconciling ScaledObject	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "38ff4845-2b0c-4d5e-8879-3f90b20e3fe8"}
+2026-03-23T05:45:43Z	INFO	Detected resource targeted for scaling	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "38ff4845-2b0c-4d5e-8879-3f90b20e3fe8", "resource": "apps/v1.Deployment", "name": "ai-server"}
+2026-03-23T05:57:26Z	INFO	Reconciling ScaledObject	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "e05edaff-d152-41e7-b9ce-aa12ea877b1a"}
+2026-03-23T05:57:26Z	INFO	Setting Paused condition before stopping scale loop	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "e05edaff-d152-41e7-b9ce-aa12ea877b1a"}
+2026-03-23T05:57:26Z	INFO	Deleting existing HPA	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "e05edaff-d152-41e7-b9ce-aa12ea877b1a", "HPA.Namespace": "deep-quest", "HPA.Name": "ai-server-keda-hpa"}
+2026-03-23T05:57:26Z	INFO	Reconciling ScaledObject	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "b40c3127-8678-4ab9-8bae-40e05fa0b664"}
+2026-03-23T06:09:23Z	INFO	Reconciling ScaledObject	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "b4d6b159-4097-4b31-8d76-22d383b980bf"}
+2026-03-23T06:09:23Z	INFO	Detected resource targeted for scaling	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "b4d6b159-4097-4b31-8d76-22d383b980bf", "resource": "apps/v1.Deployment", "name": "ai-server"}
+2026-03-23T06:09:23Z	INFO	Creating a new HPA	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "b4d6b159-4097-4b31-8d76-22d383b980bf", "HPA.Namespace": "deep-quest", "HPA.Name": "ai-server-keda-hpa"}
+2026-03-23T06:09:23Z	INFO	Initializing Scaling logic according to ScaledObject Specification	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "b4d6b159-4097-4b31-8d76-22d383b980bf"}
+2026-03-23T06:09:23Z	INFO	Reconciling ScaledObject	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "294a59f0-cbfb-42d0-84dc-37442112e0fd"}
+2026-03-23T06:09:23Z	INFO	Detected resource targeted for scaling	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "294a59f0-cbfb-42d0-84dc-37442112e0fd", "resource": "apps/v1.Deployment", "name": "ai-server"}
+2026-03-23T06:28:44Z	INFO	Reconciling ScaledObject	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "c3cec554-62a0-4878-855d-d82bab678730"}
+2026-03-23T06:28:44Z	INFO	Setting Paused condition before stopping scale loop	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "c3cec554-62a0-4878-855d-d82bab678730"}
+2026-03-23T06:28:44Z	INFO	Deleting existing HPA	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "c3cec554-62a0-4878-855d-d82bab678730", "HPA.Namespace": "deep-quest", "HPA.Name": "ai-server-keda-hpa"}
+2026-03-23T06:28:44Z	INFO	Reconciling ScaledObject	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "5635c189-0f96-4c3e-ab11-3a1a1ed763b6"}
+2026-03-23T15:27:46Z	INFO	cert-rotation	no cert refresh needed
+2026-03-23T15:27:46Z	INFO	cert-rotation	Ensuring CA cert	{"name": "v1beta1.external.metrics.k8s.io", "gvk": "apiregistration.k8s.io/v1, Kind=APIService", "name": "v1beta1.external.metrics.k8s.io", "gvk": "apiregistration.k8s.io/v1, Kind=APIService"}
+2026-03-23T15:27:46Z	INFO	cert-rotation	Ensuring CA cert	{"name": "keda-admission", "gvk": "admissionregistration.k8s.io/v1, Kind=ValidatingWebhookConfiguration", "name": "keda-admission", "gvk": "admissionregistration.k8s.io/v1, Kind=ValidatingWebhookConfiguration"}
+2026-03-23T17:29:28Z	INFO	cert-rotation	no cert refresh needed
+2026-03-23T23:29:34Z	INFO	Reconciling ScaledObject	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "bb695425-7f24-43d8-84d8-85ccd8783717"}
+2026-03-23T23:29:34Z	INFO	Detected resource targeted for scaling	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "bb695425-7f24-43d8-84d8-85ccd8783717", "resource": "apps/v1.Deployment", "name": "ai-server"}
+2026-03-23T23:29:34Z	INFO	Creating a new HPA	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "bb695425-7f24-43d8-84d8-85ccd8783717", "HPA.Namespace": "deep-quest", "HPA.Name": "ai-server-keda-hpa"}
+2026-03-23T23:29:34Z	INFO	Initializing Scaling logic according to ScaledObject Specification	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "bb695425-7f24-43d8-84d8-85ccd8783717"}
+2026-03-23T23:29:34Z	INFO	Reconciling ScaledObject	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "f881d9bf-a1ce-426b-8520-2d0056df915f"}
+2026-03-23T23:29:34Z	INFO	Detected resource targeted for scaling	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "f881d9bf-a1ce-426b-8520-2d0056df915f", "resource": "apps/v1.Deployment", "name": "ai-server"}
+2026-03-23T23:55:16Z	INFO	Reconciling ScaledObject	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "652b7ed1-d657-4be9-82f2-3bfe590a185f"}
+2026-03-23T23:55:16Z	INFO	Setting Paused condition before stopping scale loop	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "652b7ed1-d657-4be9-82f2-3bfe590a185f"}
+2026-03-23T23:55:16Z	INFO	Deleting existing HPA	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "652b7ed1-d657-4be9-82f2-3bfe590a185f", "HPA.Namespace": "deep-quest", "HPA.Name": "ai-server-keda-hpa"}
+2026-03-23T23:55:16Z	INFO	Reconciling ScaledObject	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "bd80dfe6-016e-4d75-81f9-f6de21318ff2"}
+2026-03-23T23:57:17Z	INFO	Reconciling ScaledObject	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "44adce69-2cde-41ae-ad0e-9493a0f42997"}
+2026-03-23T23:57:17Z	INFO	Detected resource targeted for scaling	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "44adce69-2cde-41ae-ad0e-9493a0f42997", "resource": "apps/v1.Deployment", "name": "ai-server"}
+2026-03-23T23:57:17Z	INFO	Creating a new HPA	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "44adce69-2cde-41ae-ad0e-9493a0f42997", "HPA.Namespace": "deep-quest", "HPA.Name": "ai-server-keda-hpa"}
+2026-03-23T23:57:17Z	INFO	Initializing Scaling logic according to ScaledObject Specification	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "44adce69-2cde-41ae-ad0e-9493a0f42997"}
+2026-03-23T23:57:17Z	INFO	Reconciling ScaledObject	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "0ad3583d-49bc-44a0-9484-bea64b46054f"}
+2026-03-23T23:57:17Z	INFO	Detected resource targeted for scaling	{"controller": "scaledobject", "controllerGroup": "keda.sh", "controllerKind": "ScaledObject", "ScaledObject": {"name":"ai-server-keda","namespace":"deep-quest"}, "namespace": "deep-quest", "name": "ai-server-keda", "reconcileID": "0ad3583d-49bc-44a0-9484-bea64b46054f", "resource": "apps/v1.Deployment", "name": "ai-server"}
+
+## ai-server logs
+### ai-server-7c764d5867-5skpt
+
+### ai-server-7c764d5867-8447r
+
+### ai-server-7c764d5867-9kqhw
+
+### ai-server-7c764d5867-b8mrz
+
+## Postgres max_connections
+ max_connections 
+-----------------
+ 200
+(1 row)
+
+
+## Current run table status counts
+ status  | count 
+---------+-------
+ pending | 26025
+ success |   295
+ running |   160
+(3 rows)
+

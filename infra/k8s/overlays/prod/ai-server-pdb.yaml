@@ -1,0 +1,16 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ai-server-pdb
+  namespace: deep-quest
+  labels:
+    app.kubernetes.io/name: deep-quest
+    app.kubernetes.io/component: ai
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: ai
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/name: deep-quest
+      app.kubernetes.io/part-of: deep-quest

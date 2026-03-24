@@ -1,0 +1,37 @@
+Deep Quest AI load test - important runtime logs
+Collected: 2026-03-23
+Cluster: deep-quest
+
+[Live deployment identity]
+ai-server replicas=1
+image=harbor.192.168.0.110.nip.io/deep-quest/ai:156-7d10ae6
+
+[Live runtime env]
+GEMINI_GLOBAL_RATE_LIMIT_ENABLED=true
+GEMINI_GLOBAL_RATE_LIMIT_RPS=60
+GEMINI_GLOBAL_RATE_LIMIT_BURST=60
+GEMINI_GLOBAL_RATE_LIMIT_WAIT_TIMEOUT_SECONDS=15
+REDIS_URI=redis://redis-service:6379
+N_JOBS_PER_WORKER=40
+
+[Worker saturation evidence]
+2026-03-23T05:00:57.225787Z Worker stats active=40 available=0 max=40
+2026-03-23T05:02:06.040667Z Worker stats active=40 available=0 max=40
+2026-03-23T05:03:08.149193Z Worker stats active=40 available=0 max=40
+
+[Backlog wait-time evidence]
+2026-03-23T05:02:06.069929Z Background run succeeded run_completed_in_ms=794574 run_exec_ms=167031 run_wait_time_ms=627529
+2026-03-23T05:02:06.116674Z Background run succeeded run_completed_in_ms=794441 run_exec_ms=149459 run_wait_time_ms=644968
+2026-03-23T05:02:06.116915Z Background run succeeded run_completed_in_ms=793922 run_exec_ms=38732 run_wait_time_ms=755176
+2026-03-23T05:02:06.117254Z Background run succeeded run_completed_in_ms=793883 run_exec_ms=32559 run_wait_time_ms=761309
+
+[Gemini API call success evidence]
+2026-03-23T04:54:04.999203Z HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-03-23T04:54:51.109180Z HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-03-23T04:57:48.920796Z HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent "HTTP/1.1 200 OK"
+
+[Observed interpretation]
+- Worker concurrency was saturated at 40.
+- Excess runs waited in backlog before execution.
+- Gemini calls continued successfully without 429 evidence in the sampled logs.
+- Global Gemini limiter was live at 60 RPS, not 66 RPS.

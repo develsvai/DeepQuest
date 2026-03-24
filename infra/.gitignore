@@ -1,0 +1,15 @@
+# Environment files (시크릿 포함, 커밋 금지)
+.env
+.env.*
+!.env.example
+docker/postgres/.env
+docker/postgres/logs/
+docker/postgres/backups/
+docker/ai/.env
+docker/ai/logs/
+docker/ai/data/
+docker/web/.env
+홍용재_이력서.docx.pdf
+.DS_Store
+__pycache__/
+*.pyc
