@@ -159,9 +159,6 @@ DeepQuest는 Web 계층은 높은 요청량을 받을 수 있었지만, 실제 A
 - 동기 stream 루프
 - worker가 외부 응답 대기 동안 오래 점유되는 구조
 
-관련 문서:
-- [2단계 100vu 부하 로그](evidence/keda/2단계/step2-medium-load-logs.txt)
-
 ---
 
 ## 6. 개선 작업
@@ -242,7 +239,7 @@ DeepQuest는 Web 계층은 높은 요청량을 받을 수 있었지만, 실제 A
 ![Locust 최종 결과](portfolio-assets/final_result.png)
 
 참고 증거:
-- [2단계 retry 2 요약](evidence/keda/2단계_retry_2/summary.md)
+- [최종 결과 요약](evidence/keda/2단계_retry_2/summary.md)
 
 ---
 
