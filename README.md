@@ -129,7 +129,7 @@ DeepQuest는 Web 계층은 높은 요청량을 받을 수 있었지만, 실제 A
 ![KEDA 초기 HPA 상태](portfolio-assets/no_5_HPA.png)
 
 관련 문서:
-- [1단계 Retry 로그](evidence/keda/1단계_retry/step1-low-load-retry-logs.txt)
+- [1차 실험 로그](evidence/keda/1단계_retry/step1-low-load-retry-logs.txt)
 - [Autoscaling And Throughput Issues](infra/docs/troubleshooting/autoscaling-and-throughput.md)
 
 ---
