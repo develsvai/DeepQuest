@@ -77,6 +77,6 @@ Deep Quest 전용 Grafana 대시보드 (리소스, 트래픽, HPA, 네트워크)
 
 또는 수동 import: Grafana → Dashboards → Import → `dashboards/stress-test.json` 업로드
 
-Day 1 작업 전체 진행 상황·산출물 체크리스트: [Task1 공통 문서](../../docs-infra/K6_RPS_TEST_TASK_1/Task1_공통_문서.md)
+Day 1 작업 전체 진행 상황·산출물 체크리스트: [K6 Day 1 요약](../../docs/performance/k6-day1-summary.md)
 
 Ingress RPS & P95 패널이 No data일 때는 [트러블슈팅](./트러블슈팅.md) 문서의 1~5번·7번 절차를 참고한다.

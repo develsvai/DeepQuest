@@ -1,0 +1,4 @@
+[submodule "infra"]
+	path = infra
+	url = https://github.com/develsvai/deep-quest-infra.git
+	branch = main

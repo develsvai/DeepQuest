@@ -112,6 +112,15 @@ pipeline {
             steps {
                 // 워크스페이스 루트 = 앱 레포 (web/, ai/, infra/)
                 script {
+                    def retagExistingImage = { imageName ->
+                        def imageRef = "${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${imageName}"
+                        echo ">> Re-tagging existing ${imageName}:${params.DEPLOY_ENV} to ${env.BUILD_TAG}..."
+                        sh """
+                            docker pull ${imageRef}:${params.DEPLOY_ENV}
+                            docker tag ${imageRef}:${params.DEPLOY_ENV} ${imageRef}:${env.BUILD_TAG}
+                        """
+                    }
+
                     if (params.BUILD_AI) {
                         echo ">> Building AI Server (langgraph build)..."
                         sh "cd ai && uv run langgraph build -t ${HARBOR_REGISTRY}/${HARBOR_PROJECT}/ai:${env.BUILD_TAG}"
@@ -120,6 +129,9 @@ pipeline {
                         if (params.BUILD_AI) {
                             docker.image("${HARBOR_REGISTRY}/${HARBOR_PROJECT}/ai:${env.BUILD_TAG}").push()
                             docker.image("${HARBOR_REGISTRY}/${HARBOR_PROJECT}/ai:${env.BUILD_TAG}").push("${params.DEPLOY_ENV}")
+                        } else {
+                            retagExistingImage("ai")
+                            docker.image("${HARBOR_REGISTRY}/${HARBOR_PROJECT}/ai:${env.BUILD_TAG}").push()
                         }
                         if (params.BUILD_WEB) {
                             echo ">> Building Web Server..."
@@ -129,6 +141,9 @@ pipeline {
                             )
                             img.push()
                             img.push("${params.DEPLOY_ENV}")
+                        } else {
+                            retagExistingImage("web")
+                            docker.image("${HARBOR_REGISTRY}/${HARBOR_PROJECT}/web:${env.BUILD_TAG}").push()
                         }
                         if (params.BUILD_LANGGRAPH_METRICS) {
                             echo ">> Building LangGraph Run Metrics Exporter..."
@@ -138,6 +153,9 @@ pipeline {
                             )
                             metricsImg.push()
                             metricsImg.push("${params.DEPLOY_ENV}")
+                        } else {
+                            retagExistingImage("langgraph-run-metrics-exporter")
+                            docker.image("${HARBOR_REGISTRY}/${HARBOR_PROJECT}/langgraph-run-metrics-exporter:${env.BUILD_TAG}").push()
                         }
                     }
                 }
@@ -164,15 +182,9 @@ pipeline {
                             
                             # kustomization.yaml 이미지 태그 업데이트
                             KUSTOMIZE_FILE="k8s/overlays/${params.DEPLOY_ENV}/kustomization.yaml"
-                            if [ "${params.BUILD_AI}" = "true" ]; then
-                              sed -i.bak "s|newTag:.*# ai-tag|newTag: ${env.BUILD_TAG} # ai-tag|g" \$KUSTOMIZE_FILE
-                            fi
-                            if [ "${params.BUILD_WEB}" = "true" ]; then
-                              sed -i.bak "s|newTag:.*# web-tag|newTag: ${env.BUILD_TAG} # web-tag|g" \$KUSTOMIZE_FILE
-                            fi
-                            if [ "${params.BUILD_LANGGRAPH_METRICS}" = "true" ]; then
-                              sed -i.bak "s|newTag:.*# metrics-exporter-tag|newTag: ${env.BUILD_TAG} # metrics-exporter-tag|g" \$KUSTOMIZE_FILE
-                            fi
+                            sed -i.bak "s|newTag:.*# ai-tag|newTag: ${env.BUILD_TAG} # ai-tag|g" \$KUSTOMIZE_FILE
+                            sed -i.bak "s|newTag:.*# web-tag|newTag: ${env.BUILD_TAG} # web-tag|g" \$KUSTOMIZE_FILE
+                            sed -i.bak "s|newTag:.*# metrics-exporter-tag|newTag: ${env.BUILD_TAG} # metrics-exporter-tag|g" \$KUSTOMIZE_FILE
                             rm -f \${KUSTOMIZE_FILE}.bak
                             
                             echo ">> Updated kustomization.yaml:"

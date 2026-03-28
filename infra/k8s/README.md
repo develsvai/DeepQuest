@@ -183,7 +183,7 @@ CI에서 이미지 빌드·푸시 후 배포까지 자동화할 때 사용합니
 
 ### 3.3 ArgoCD (GitOps)
 
-Git 저장소의 매니페스트를 기준으로 클러스터를 동기화할 때 사용합니다. Application은 아래 YAML로 `kubectl apply`하거나, **ArgoCD UI**에서 "New App"으로 동일한 소스·대상·경로(`k8s/overlays/prod` 또는 dev)를 지정해 등록할 수 있습니다. 상세 워크플로우는 [K8S 배포 가이드](../docs-infra/K8S_배포%20가이드.md) 참고.
+Git 저장소의 매니페스트를 기준으로 클러스터를 동기화할 때 사용합니다. Application은 아래 YAML로 `kubectl apply`하거나, **ArgoCD UI**에서 "New App"으로 동일한 소스·대상·경로(`k8s/overlays/prod` 또는 dev)를 지정해 등록할 수 있습니다. 상세 워크플로우는 [운영 배포 Runbook](../docs/runbooks/prod-deployment.md) 참고.
 
 ```bash
 # stdin으로 전달한 YAML을 적용해 ArgoCD Application 등록
