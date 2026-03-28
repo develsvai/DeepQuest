@@ -103,7 +103,7 @@ DeepQuest는 Web 계층은 높은 요청량을 받을 수 있었지만, 실제 A
 ![Concurrent max=40 실험 결과](portfolio-assets/concurrent_max=40_result.png)
 
 참고 증거:
-- [concurrent_max=40 정리](evidence/concurrent_max=40/README.md)
+- [1차 실험 요약](evidence/concurrent_max=40/README.md)
 - [핵심 로그](evidence/concurrent_max=40/ai-load-test-important-logs.txt)
 
 ---
