@@ -27,6 +27,13 @@ coverage/
 
 # Environment files
 .env*
+!.env.example
+!**/.env.example
+!.env*.example
+!**/.env*.example
+.envrc
+.direnv/
+*.local
 
 # OS files
 .DS_Store
@@ -55,8 +62,38 @@ yarn-error.log*
 *.tsbuildinfo
 web/next-env.d.ts
 
-# Certificates
+# Certificates and secrets
 *.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+*.jks
+*.keystore
+
+# Python
+.python-version
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.coverage
+.coverage.*
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Test and tool outputs
+.turbo/
+playwright-report/
+test-results/
 
 # Deployment
 .vercel
@@ -67,6 +104,7 @@ web/next-env.d.ts
 # Temporary files
 *.tmp
 *.temp
+*template*
 
 # serena
 .serena/cache
