@@ -15,7 +15,9 @@ labels:
       environment: dev
     includeSelectors: true
 
-# 이미지 태그 오버라이드 (Jenkins에서 자동 업데이트)
+# 이미지 태그 오버라이드
+# - Jenkins 배포 시 ai/web/metrics는 같은 BUILD_TAG로 맞춘다.
+# - dev 태그는 Harbor의 이동 alias이며, 수동 확인이나 재태깅 기준으로만 사용한다.
 images:
   - name: harbor.192.168.0.110.nip.io/deep-quest/postgres
     newTag: dev # db-tag

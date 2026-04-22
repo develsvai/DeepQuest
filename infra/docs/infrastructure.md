@@ -1,7 +1,9 @@
-# 아키텍처
+# 인프라 작업 경계
 
 ## 목적
-이 문서는 `infra/` 내부 인프라 작업의 활성 실행 경계를 정의한다.
+이 문서는 `deep-quest/infra` 저장소 내부 인프라 작업의 활성 실행 경계를 정의한다.
+
+이 문서는 전체 인프라의 canonical architecture 문서가 아니다. 실제 현재 구조와 실행 상태는 최신 `docs/infra_state/` 스냅샷, 작업 우선순위는 최신 `docs/status/`, 작업 진행은 최신 `docs/tasks/`를 우선한다.
 
 ## 작업 영역
 
@@ -25,3 +27,13 @@
 ## 의사결정 경계
 
 인프라 작업이 애플리케이션 코드 변경까지 요구한다면, 진행 전에 교차 경계를 분명히 알린다.
+
+## 관련 기준 문서
+
+- 현재 실측 상태: `docs/infra_state/`
+- 현재 의도와 우선순위: `docs/status/`
+- 실제 작업 진행: `docs/tasks/`
+- 작업 workflow 기준: `docs/reference/infra-workflow-from-idea-to-operation.md`
+- 배포 source of truth 기준: `docs/reference/deployment-source-of-truth.md`
+- 반복 절차: `docs/runbooks/`
+- 재발 가능한 장애 대응: `docs/troubleshooting/`

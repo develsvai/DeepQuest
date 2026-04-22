@@ -1,5 +1,8 @@
 # Ansible Automation Candidates
 
+확인 시점: `2026-04-20 KST`  
+대상 환경: `deep-quest/infra` automation candidates
+
 ## 목적
 
 현재 `infra/`에서 수동 또는 쉘 기반으로 처리하는 작업 중, Ansible로 표준화하기 좋은 대상을 정리한다.

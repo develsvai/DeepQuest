@@ -22,9 +22,6 @@ spec:
       labels:
         app.kubernetes.io/name: deep-quest
         app.kubernetes.io/component: ai
-      annotations:
-        # ConfigMap/Secret 변경 시 자동 롤아웃을 위한 checksum
-        checksum/config: "{{ include (print $.Template.BasePath \"/configmap.yaml\") . | sha256sum }}"
     spec:
       serviceAccountName: deep-quest-sa
       terminationGracePeriodSeconds: 30

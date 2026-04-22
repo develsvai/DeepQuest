@@ -1,5 +1,8 @@
 # Web Runtime Auth And Webhooks
 
+확인 시점: `2026-04-20 KST`  
+대상 환경: `deep-quest` Web runtime, Clerk, webhook
+
 ## 발생 조건
 
 - Web 빌드/런타임 변경, Clerk 설정 변경, Webhook 연동 변경 시

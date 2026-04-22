@@ -12,7 +12,7 @@ ENVIRONMENT=${ENVIRONMENT:-development}
 echo "🔧 Environment: $ENVIRONMENT"
 
 # Check environment files
-echo "🔧 Checking environment files..."
+echo "Checking environment files..."
 
 # Compose 레벨 .env 파일 선택 (ENVIRONMENT에 따라)
 if [ "$ENVIRONMENT" = "production" ] && [ -f docker/.env.prod ]; then
@@ -29,7 +29,7 @@ elif [ ! -f docker/.env ]; then
 fi
 
 # Check if images exist
-echo "📦 Checking Docker images..."
+echo "Checking Docker images..."
 
 # 환경에 따라 이미지 태그 결정
 if [ "$ENVIRONMENT" = "production" ]; then
@@ -90,7 +90,7 @@ elif [ ! -f docker/web/.env ]; then
 fi
 
 echo ""
-echo "🐳 Starting all services (ENVIRONMENT=$ENVIRONMENT)..."
+echo "Starting all services (ENVIRONMENT=$ENVIRONMENT)..."
 
 ENVIRONMENT=${ENVIRONMENT} docker-compose -f docker/docker-compose.yml up -d
 
@@ -99,17 +99,17 @@ echo "⏳ Waiting for services to be ready..."
 sleep 20
 
 echo ""
-echo "📊 Service status:"
+echo "Service status:"
 docker-compose -f docker/docker-compose.yml ps
 
 echo ""
 echo "✅ Deep Quest is running!"
 echo ""
-echo "🌐 Access URLs:"
+echo "Access URLs:"
 echo "   Web App:    http://localhost:3000"
 echo "   AI Server:  http://localhost:8123/docs"
 echo ""
-echo "📝 View logs:"
+echo "View logs:"
 echo "   docker-compose -f docker/docker-compose.yml logs -f"
 echo ""
 echo "🛑 Stop services:"

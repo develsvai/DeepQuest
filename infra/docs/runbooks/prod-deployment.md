@@ -1,15 +1,25 @@
 # Prod Deployment Runbook
 
+확인 시점: `2026-04-20 KST`  
+대상 환경: `deep-quest prod`, Jenkins, Harbor, ArgoCD
+
 ## 목적
 
 `deep-quest` 프로덕션 배포 시 Jenkins, Secret, ArgoCD, 배포 후 점검 순서를 한 문서에서 확인한다.
+
+## 실행 위치
+
+- Jenkins 배포는 Jenkins UI에서 실행한다.
+- Secret 스크립트는 상위 앱 레포 기준으로 `./infra/k8s/scripts/apply-secrets.sh`를 실행한다.
+- 이 `infra` 저장소 안에서만 작업 중이면 같은 스크립트는 `k8s/scripts/apply-secrets.sh`로 본다.
+- 배포 정합성 기준은 [Deployment Source Of Truth](../reference/deployment-source-of-truth.md)를 따른다.
 
 ## 사전 확인
 
 1. Jenkins credential `web-build-env` 최신화
 2. Harbor / GitHub credential 유효성 확인
-3. `infra/k8s/overlays/prod` 변경 사항 확인
-4. `infra/k8s/scripts/apply-secrets.sh` 실행에 필요한 `.env.prod` 준비
+3. 상위 앱 레포 기준 `infra/k8s/overlays/prod`, infra repo 기준 `k8s/overlays/prod` 변경 사항 확인
+4. Secret 적용에 필요한 `.env.prod` 준비
 5. ArgoCD repo / project 연결 상태와 prod Application 설정 확인
 6. 외부 연동이 필요한 경우 Funnel / webhook 공개 경로가 현재 값과 일치하는지 확인
 
@@ -17,11 +27,11 @@
 
 1. Jenkins에서 `DEPLOY_ENV=prod`로 빌드 실행
 2. Harbor에 세 이미지(`AI`/`Web`/`LangGraph metrics exporter`)가 모두 같은 `${BUILD_TAG}`로 준비되었는지 확인
-3. 실제 빌드한 이미지는 `${BUILD_TAG}`와 `prod` 태그로 push 되었는지, 빌드하지 않은 이미지는 기존 `prod` 이미지를 `${BUILD_TAG}`로 재태깅해 push 했는지 확인
+3. 실제 빌드한 이미지는 `${BUILD_TAG}`와 `prod` 태그로 push 되었는지, 빌드하지 않은 이미지는 기존 `prod` alias 이미지를 `${BUILD_TAG}`로 재태깅해 push 했는지 확인
 4. `deploy` 브랜치의 `k8s/overlays/prod/kustomization.yaml`에서 세 이미지 항목이 모두 같은 `${BUILD_TAG}`로 갱신되었는지 확인
-5. 필요 시 `./infra/k8s/scripts/apply-secrets.sh` 실행
+5. 필요 시 Secret 스크립트 실행
 6. ArgoCD에서 `deep-quest-prod` sync
-7. rollout, HPA, ingress, health endpoint 확인
+7. `scripts/verify/verify-deploy.sh`로 ArgoCD 상태, overlay/live image tag, rollout, HPA, ingress, health endpoint를 확인
 
 ## ArgoCD 사전 점검
 
@@ -60,18 +70,22 @@
   - `github-credentials`
 
 추가 확인:
-- Jenkins는 실제로 빌드하지 않은 이미지도 현재 `${DEPLOY_ENV}` 태그 이미지를 새 `${BUILD_TAG}`로 재태깅해 Harbor에 push한다
-- `BUILD_TAG`는 `BUILD_NUMBER-앱커밋짧은해시` 형식으로 생성된다
-- prod Application은 `deploy` 브랜치를 보지만 자동 sync는 꺼져 있으므로 ArgoCD 수동 sync가 필요하다
-- 부분 빌드여도 `deploy` 브랜치에는 세 이미지 태그가 모두 같은 새 `${BUILD_TAG}`로 올라간다
-- 빌드하지 않은 이미지의 `${BUILD_TAG}`는 현재 `${DEPLOY_ENV}` 이미지에서 복제한 태그이므로, 기준 이미지는 Jenkins 실행 직전 Harbor의 `${DEPLOY_ENV}` 태그다
-- submodule 기반 빌드라면 main / develop 어느 브랜치에 실제 submodule 설정이 반영돼 있는지 같이 확인한다
+- `${BUILD_TAG}`와 `prod` alias의 의미는 [Deployment Source Of Truth](../reference/deployment-source-of-truth.md)를 기준으로 본다.
+- prod Application은 `deploy` 브랜치를 보지만 자동 sync는 꺼져 있으므로 ArgoCD 수동 sync가 필요하다.
+- submodule 기반 빌드라면 main / develop 어느 브랜치에 실제 submodule 설정이 반영돼 있는지 같이 확인한다.
 
 ## Secret 반영
 
 ```bash
 cd /path/to/deep-quest
 ./infra/k8s/scripts/apply-secrets.sh
+kubectl get secrets -n deep-quest
+```
+
+infra repo 내부에서 실행 중이면:
+
+```bash
+k8s/scripts/apply-secrets.sh
 kubectl get secrets -n deep-quest
 ```
 
@@ -83,8 +97,9 @@ kubectl get secrets -n deep-quest
 
 ## ArgoCD 대상
 
-- Application file: `infra/k8s/argocd/application-prod.yaml`
-- Overlay path: `infra/k8s/overlays/prod`
+- Application: `deep-quest-prod`
+- Application file: 상위 앱 레포 기준 `infra/k8s/argocd/application-prod.yaml`, infra repo 기준 `k8s/argocd/application-prod.yaml`
+- Overlay path: 상위 앱 레포 기준 `infra/k8s/overlays/prod`, infra repo 기준 `k8s/overlays/prod`
 - 일반 규칙:
   - prod는 자동 sync보다 수동 sync 기준으로 다룬다
   - HPA replica 차이는 `ignoreDifferences` 대상인지 확인한다
@@ -92,6 +107,7 @@ kubectl get secrets -n deep-quest
 ## 배포 후 검증
 
 ```bash
+EXPECTED_TAG=<BUILD_TAG> DEPLOY_ENV=prod scripts/verify/verify-deploy.sh
 kubectl get all -n deep-quest -o wide
 kubectl get hpa,ingress,cronjob,pvc -n deep-quest
 kubectl rollout status deployment/web-server -n deep-quest
@@ -100,6 +116,7 @@ kubectl get pods -n deep-quest
 ```
 
 추가 확인:
+- `scripts/verify/verify-deploy.sh`는 현재 checkout의 overlay를 기준으로 보므로, image tag 정합성까지 보려면 `deploy` 브랜치 기준에서 실행한다
 - ingress host: `deepquest.192.168.0.110.nip.io`
 - web health: `/api/health`
 - AI health: `/ok`
@@ -108,10 +125,11 @@ kubectl get pods -n deep-quest
 
 ## 관련 파일
 
-- `infra/Jenkinsfile`
-- `infra/k8s/overlays/prod/kustomization.yaml`
-- `infra/k8s/argocd/application-prod.yaml`
-- `infra/k8s/scripts/apply-secrets.sh`
+- `Jenkinsfile`
+- `k8s/overlays/prod/kustomization.yaml`
+- `k8s/argocd/application-prod.yaml`
+- `k8s/scripts/apply-secrets.sh`
+- `../reference/deployment-source-of-truth.md`
 
 ## 원본 문서
 

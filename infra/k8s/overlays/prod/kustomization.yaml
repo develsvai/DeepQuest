@@ -17,7 +17,10 @@ labels:
       environment: prod
     includeSelectors: false
 
-# 이미지 태그 오버라이드 (Jenkins에서 자동 업데이트)
+# 이미지 태그 오버라이드
+# - ai/web/metrics는 Jenkins가 deploy 브랜치에서 immutable BUILD_TAG로 갱신한다.
+# - prod 태그는 Harbor의 이동 alias이며, 이 브랜치에서는 배포 전 placeholder로만 둔다.
+# - postgres latest는 현재 별도 DB 이미지 관리 기준이 없어 유지하는 bootstrap/default 태그다.
 images:
   - name: harbor.192.168.0.110.nip.io/deep-quest/postgres
     newTag: latest # db-tag

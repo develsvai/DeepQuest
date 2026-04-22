@@ -1,5 +1,8 @@
 # Tailscale Funnel And Session Affinity
 
+확인 시점: `2026-04-20 KST`  
+대상 환경: `deep-quest` Tailscale Funnel, ingress/session affinity
+
 ## 발생 조건
 
 - 외부 접속 경로를 Funnel로 바꾸거나, in-memory 상태를 가진 요청 라우팅을 안정화할 때

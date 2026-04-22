@@ -2,6 +2,8 @@
 
 - 확인 시점: `2026-04-09 KST`
 - 대상 환경: `deep-quest prod`
+- 문서 성격: `2026-04-09` 기준 구조 리뷰 스냅샷과 follow-up 질문 목록
+- 현재 기준: 최신 live 판단은 최신 `docs/infra_state/`와 [Deployment Source Of Truth](./deployment-source-of-truth.md)를 우선한다
 - 근거: `docs/infra_state/2026-04-09-live.md`, `Jenkinsfile`, `k8s/argocd/application-prod.yaml`, `k8s/base/*`, `k8s/overlays/prod/*`
 
 ## 한눈에 보는 구조
@@ -21,7 +23,7 @@
   - Jenkins가 이미지를 build/push한다
   - Harbor가 runtime image registry 역할을 맡는다
   - Jenkins가 `deploy` 브랜치 `k8s/overlays/prod/kustomization.yaml` tag를 갱신한다
-  - ArgoCD application `deepquest-infra`가 `deploy` 브랜치 `k8s/overlays/prod`를 sync한다
+  - ArgoCD Application `deep-quest-prod`가 `deploy` 브랜치 `k8s/overlays/prod`를 sync한다
 - DeepQuest runtime
   - `web-server`: HPA 기반
   - `ai-server`: prod에서 base HPA를 제거하고 KEDA + PDB 기반
@@ -90,8 +92,8 @@
 - Jenkins pipeline은 앱 레포를 clone하고 이미지를 build한 뒤 Harbor에 push한다
 - 빌드하지 않은 서비스도 현재 `${DEPLOY_ENV}` 태그를 pull 후 새 `${BUILD_TAG}`로 retag 해 동일 build tag를 유지한다
 - 이후 Jenkins가 infra repo `deploy` 브랜치의 `k8s/overlays/prod/kustomization.yaml` tag를 갱신한다
-- ArgoCD application `deepquest-infra`는 `deploy` 브랜치 `k8s/overlays/prod`를 추적한다
-- 현재 application은 `SYNC STATUS=Synced`, `HEALTH STATUS=Suspended`로 보인다
+- ArgoCD Application `deep-quest-prod`는 `deploy` 브랜치 `k8s/overlays/prod`를 추적한다
+- 당시 관측된 application health는 `Suspended`로 보였으며, 현재 상태는 live에서 다시 확인해야 한다
 - Monitoring stack은 Prometheus, Alertmanager, Grafana, kube-state-metrics, node-exporter로 구성된다
 
 ### "Harbor가 왜 필요한가?"에 대한 현재 답
@@ -104,7 +106,7 @@
 
 - Harbor backup / retention / GC / immutability 정책이 있는지?
 - Jenkins controller가 `local-path` PVC 하나에 의존하는데 장애 복구 절차가 준비돼 있는지?
-- `deepquest-infra` app health가 `Suspended`로 보이는 이유가 정책인지, 상태 이상인지?
+- `deep-quest-prod` app health가 `Suspended`로 보이는 이유가 정책인지, 상태 이상인지?
 - prod가 수동 sync 운영이라면 승인 주체와 rollback 기준은 무엇인지?
 - Jenkins agent / worker 증설 기준과 Docker build cache 관리 정책은 무엇인지?
 
@@ -148,7 +150,7 @@
 3. `192.168.0.7:/data/nfs` 장애 시 Harbor, Postgres backup, DeepQuest data 영향 범위는 무엇인가?
 4. Proxmox에서 master / worker / `jenkins-build`가 어떻게 VM으로 매핑돼 있는가?
 5. Jenkins는 LoadBalancer와 Tailscale 중 어느 경로를 표준 운영 경로로 쓰는가?
-6. ArgoCD app `deepquest-infra` health가 `Suspended`로 보이는 이유는 무엇인가?
+6. ArgoCD app `deep-quest-prod` health가 `Suspended`로 보이는 이유는 무엇인가?
 7. web HPA min `4` / max `10` 수치는 어떤 실험 결과에서 나온 것인가?
 8. secret을 GitOps 대상에서 뺀 현재 구조의 변경 승인 / 감사 절차는 무엇인가?
 

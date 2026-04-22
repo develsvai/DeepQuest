@@ -1,5 +1,8 @@
 # AI Runtime And LangGraph Issues
 
+확인 시점: `2026-04-20 KST`  
+대상 환경: `deep-quest` AI runtime, LangGraph, Redis/Postgres
+
 ## 발생 조건
 
 - AI 이미지를 새로 빌드하거나 LangGraph 런타임을 바꿀 때

@@ -208,62 +208,24 @@ PDF/DOCX 파일 지원
 3. `pnpm check-all` 실행 (필수)
 4. AI 에이전트로 코드 리뷰
 
-## 🤖 AI-Powered Development Workflow
+## 🔄 Development Workflow
 
-이 프로젝트는 Claude Code의 AI 에이전트를 활용한 **AI Feedback Loop** 개발 방식을 채택하고 있습니다.
-
-### AI Agent Architecture
-
-`.claude/agents/` 디렉토리에 특화된 AI 에이전트들이 정의되어 있습니다:
-
-#### Development Agents
-
-- **nextjs-front-dev**: React 컴포넌트 개발, shadcn/ui 통합, 성능 최적화
-- **nextjs-backend-dev**: tRPC API 개발, 데이터베이스 연동
-
-#### Reviewer Agents (자동 코드 리뷰)
-
-- **nextjs-component-reviewer**: 컴포넌트 아키텍처 검증
-- **react-patterns-reviewer**: React 패턴 및 hooks 최적화 검토
-- **typescript-reviewer**: TypeScript strict mode 준수 확인
-- **design-system-reviewer**: 디자인 토큰 사용 검증
-- **trpc-api-reviewer**: API 패턴 및 타입 안전성 검토
-
-#### 특수 목적 Agents
-
-- **ascii-web-designer**: UI 와이어프레임 설계
-- **playwright-e2e-reviewer**: 실시간 브라우저 테스트
-
-### AI Feedback Loop 프로세스
+이 프로젝트는 규칙 문서와 품질 게이트를 중심으로 개발합니다.
 
 ```mermaid
 graph LR
-    A[개발 요구사항] --> B[Dev Agent 구현]
-    B --> C[Reviewer Agents 검토]
-    C --> D{규칙 준수?}
-    D -->|No| E[피드백 및 개선]
-    E --> B
-    D -->|Yes| F[코드 완성]
+    A[개발 요구사항] --> B["관련 규칙 확인 (docs/rules)"]
+    B --> C[구현]
+    C --> D["pnpm check-all"]
+    D --> E{이슈 없음?}
+    E -->|No| F[수정]
+    F --> C
+    E -->|Yes| G[완료]
 ```
 
-1. **규칙 기반 개발**: 모든 에이전트는 `docs/rules/`의 규칙을 엄격히 준수
-2. **자동 검증**: Reviewer 에이전트가 규칙 준수 여부를 자동으로 검토
-3. **반복 개선**: 피드백을 통한 지속적인 코드 품질 향상
-
-### 사용 예시
-
-```bash
-# Claude Code에서 컴포넌트 개발
-"새로운 UserProfile 컴포넌트 생성해줘"
-→ nextjs-front-dev 에이전트가 규칙에 따라 구현
-→ nextjs-component-reviewer가 자동으로 검토
-→ 피드백에 따라 개선
-
-# API 엔드포인트 개발
-"사용자 목록 조회 API 만들어줘"
-→ nextjs-backend-dev 에이전트가 tRPC 패턴 적용
-→ trpc-api-reviewer가 타입 안전성 검증
-```
+1. 구현 전에 관련 규칙 문서를 먼저 확인합니다.
+2. 기능 구현 후 `pnpm check-all`로 기본 품질 게이트를 통과시킵니다.
+3. 필요하면 추가 리뷰나 수동 점검으로 마무리합니다.
 
 ## 🌐 Internationalization
 

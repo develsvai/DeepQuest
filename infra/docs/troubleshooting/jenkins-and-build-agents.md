@@ -1,5 +1,8 @@
 # Jenkins And Build Agents
 
+확인 시점: `2026-04-20 KST`  
+대상 환경: Jenkins, Harbor, `deep-quest-infra` deploy branch
+
 ## 발생 조건
 
 - Jenkins 빌드, helper 프로세스, SSH build agent, Harbor push 경로 점검 시
@@ -50,9 +53,10 @@ ssh station 'free -h; ulimit -a; df -h'
 ```
 
 추가 확인 파일:
-- `infra/Jenkinsfile`
-- `infra/k8s/overlays/prod/kustomization.yaml`
-- `infra/k8s/argocd/application-prod.yaml`
+- infra repo 기준 `Jenkinsfile`
+- infra repo 기준 `k8s/overlays/prod/kustomization.yaml`
+- infra repo 기준 `k8s/argocd/application-prod.yaml`
+- 배포 정합성 기준은 `../reference/deployment-source-of-truth.md`
 
 ## 검색 키워드
 

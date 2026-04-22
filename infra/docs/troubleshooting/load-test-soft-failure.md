@@ -1,5 +1,8 @@
 # Load Test Soft Failure
 
+확인 시점: `2026-04-20 KST`  
+대상 환경: `deep-quest` Locust/K6 load tests
+
 ## 발생 조건
 
 - Locust 또는 대량 동시 요청 테스트에서 “성공률은 높은데 실제 처리량이 맞지 않을 때”

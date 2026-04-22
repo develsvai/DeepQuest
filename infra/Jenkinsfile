@@ -178,21 +178,69 @@ pipeline {
                             
                             # 선택한 인프라 브랜치 기반으로 deploy 브랜치 갱신
                             git fetch https://\${GIT_USER}:\${GIT_TOKEN}@github.com/develsvai/deep-quest-infra.git ${params.INFRA_BRANCH}:${params.INFRA_BRANCH}
+                            git fetch https://\${GIT_USER}:\${GIT_TOKEN}@github.com/develsvai/deep-quest-infra.git deploy:refs/remotes/origin/deploy || true
                             git checkout -B deploy ${params.INFRA_BRANCH}
                             
                             # kustomization.yaml 이미지 태그 업데이트
+                            # 주석 위치가 아니라 이미지 이름을 기준으로 갱신한다.
                             KUSTOMIZE_FILE="k8s/overlays/${params.DEPLOY_ENV}/kustomization.yaml"
-                            sed -i.bak "s|newTag:.*# ai-tag|newTag: ${env.BUILD_TAG} # ai-tag|g" \$KUSTOMIZE_FILE
-                            sed -i.bak "s|newTag:.*# web-tag|newTag: ${env.BUILD_TAG} # web-tag|g" \$KUSTOMIZE_FILE
-                            sed -i.bak "s|newTag:.*# metrics-exporter-tag|newTag: ${env.BUILD_TAG} # metrics-exporter-tag|g" \$KUSTOMIZE_FILE
-                            rm -f \${KUSTOMIZE_FILE}.bak
+                            KUSTOMIZE_FILE="\$KUSTOMIZE_FILE" BUILD_TAG_VALUE="${env.BUILD_TAG}" python3 - <<'PY'
+import os
+from pathlib import Path
+
+path = Path(os.environ["KUSTOMIZE_FILE"])
+tag = os.environ["BUILD_TAG_VALUE"]
+targets = {
+    "harbor.192.168.0.110.nip.io/deep-quest/ai": "ai-tag",
+    "harbor.192.168.0.110.nip.io/deep-quest/web": "web-tag",
+    "harbor.192.168.0.110.nip.io/deep-quest/langgraph-run-metrics-exporter": "metrics-exporter-tag",
+}
+
+lines = path.read_text().splitlines()
+current_image = None
+updated = set()
+out = []
+
+for line in lines:
+    stripped = line.strip()
+    if stripped.startswith("- name:"):
+        current_image = stripped.split(":", 1)[1].strip()
+
+    if current_image in targets and stripped.startswith("newTag:"):
+        comment = f" # {targets[current_image]}"
+        if "#" in line:
+            comment_text = line.split("#", 1)[1].strip()
+            comment = f" # {comment_text}"
+        indent = line[: len(line) - len(line.lstrip())]
+        line = f"{indent}newTag: {tag}{comment}"
+        updated.add(current_image)
+        current_image = None
+
+    out.append(line)
+
+missing = sorted(set(targets) - updated)
+if missing:
+    raise SystemExit(f"missing image tag entries: {', '.join(missing)}")
+
+path.write_text("\\n".join(out) + "\\n")
+PY
                             
                             echo ">> Updated kustomization.yaml:"
                             cat \$KUSTOMIZE_FILE
                             
                             git add k8s/
-                            git commit -m "chore: update image tags to ${env.BUILD_TAG} [${params.DEPLOY_ENV}]" || true
-                            git push --force https://\${GIT_USER}:\${GIT_TOKEN}@github.com/develsvai/deep-quest-infra.git deploy
+                            if git diff --cached --quiet; then
+                                echo ">> No image tag changes to commit"
+                                SHOULD_PUSH=0
+                            else
+                                git commit -m "chore: update image tags to ${env.BUILD_TAG} [${params.DEPLOY_ENV}]"
+                                SHOULD_PUSH=1
+                            fi
+                            if [ "\$SHOULD_PUSH" = "1" ]; then
+                                git push --force-with-lease https://\${GIT_USER}:\${GIT_TOKEN}@github.com/develsvai/deep-quest-infra.git deploy
+                            else
+                                echo ">> No deploy branch push needed"
+                            fi
                         """
                     }
                 }

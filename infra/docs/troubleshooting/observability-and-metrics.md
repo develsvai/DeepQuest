@@ -1,5 +1,8 @@
 # Observability And Metrics Issues
 
+확인 시점: `2026-04-20 KST`  
+대상 환경: `deep-quest` metrics exporter, Prometheus, Grafana
+
 ## 발생 조건
 
 - `langgraph.run` 기반 메트릭 exporter를 처음 붙이거나 수정할 때

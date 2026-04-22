@@ -1,5 +1,8 @@
 # Kubernetes And Secrets Issues
 
+확인 시점: `2026-04-20 KST`  
+대상 환경: `deep-quest` Kubernetes manifests, Secrets, ArgoCD
+
 ## 발생 조건
 
 - overlay 수정, Secret 재적용, ArgoCD sync, 초기 K8s bootstrap 시

@@ -1,8 +1,12 @@
 # Autoscaling And Throughput Issues
 
+확인 시점: `2026-04-20 KST`  
+대상 환경: `deep-quest` web HPA, AI KEDA, throughput tuning
+
 ## 발생 조건
 
 - KEDA를 backlog 기준으로 붙인 직후 scale-out이 기대만큼 처리량으로 이어지지 않을 때
+- KEDA가 pause 상태인지, 의도된 고정 replica 운영인지 확인해야 할 때
 - AI 파드는 늘어나는데 backlog가 줄지 않거나, 외부 LLM 호출량 제어가 필요할 때
 - 부하 실험에서 `desired replica`, `available replica`, `worker busy`, `completed/sec`가 서로 다르게 움직일 때
 
@@ -18,6 +22,7 @@
 - 스케줄링 실패가 CPU request 때문인지, DB connection ceiling 때문인지, 앱 처리 구조 때문인지 나눠서 본다
 - `concurrent_max`가 내부 동시성만 제한하는지, 전역 외부 호출량까지 제한하는지 구분한다
 - `Worker Busy`, `Queue Backlog`, `Jobs Completed/sec`, `LLM 호출량`을 함께 본다
+- AI는 prod overlay에서 KEDA `ScaledObject` 기준이므로 `autoscaling.keda.sh/paused` annotation 여부를 반드시 확인한다
 
 ## 근본 원인
 
@@ -36,6 +41,7 @@
 
 ```bash
 kubectl get hpa -n deep-quest
+kubectl get scaledobject -n deep-quest
 kubectl get pods -n deep-quest -o wide | rg ai-server
 kubectl top pods -n deep-quest | rg ai-server
 kubectl logs -n deep-quest deploy/ai-server --tail=200 | rg 'worker|busy|queue'
@@ -48,6 +54,7 @@ kubectl logs -n deep-quest deploy/ai-server --tail=200 | rg 'worker|busy|queue'
 - global rate limiter redis token bucket
 - backlog not draining after scale out
 - completed per sec low after keda
+- keda paused scaledobject
 
 ## 원본 판단 로그
 

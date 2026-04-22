@@ -1,5 +1,8 @@
 # Database And Prisma Issues
 
+확인 시점: `2026-04-20 KST`  
+대상 환경: `deep-quest` Postgres, Prisma, LangGraph DB
+
 ## 발생 조건
 
 - Docker Compose 또는 K8s에서 Postgres를 처음 띄우거나 재구성할 때
